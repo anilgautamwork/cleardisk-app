@@ -15,16 +15,22 @@ struct ContentView: View {
                 case .scanning:
                     ScanningView()
                 case .done:
-                    switch state.section {
-                    case .systemData: SystemDataView()
-                    case .reclaimable: ReclaimableView()
-                    case .categories: CategoriesView()
-                    case .treemap: TreemapView()
-                    case .largeFiles: LargeFilesView()
-                    case .search: SearchView()
+                    Group {
+                        switch state.section {
+                        case .systemData: SystemDataView()
+                        case .reclaimable: ReclaimableView()
+                        case .categories: CategoriesView()
+                        case .browse: BrowserView()
+                        case .treemap: TreemapView()
+                        case .largeFiles: LargeFilesView()
+                        case .search: SearchView()
+                        }
                     }
+                    .id(state.section)
+                    .transition(.opacity)
                 }
             }
+            .animation(.easeOut(duration: 0.16), value: state.section)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(hex: 0xFBFBFD))
         }
@@ -41,6 +47,40 @@ struct ContentView: View {
                 NSApp.applicationIconImage = AppIcon.image
             }
         }
+    }
+}
+
+/// Full-width clickable nav row: the ENTIRE row is the hit area (contentShape),
+/// with a hover tint so it responds before the click even lands.
+struct SidebarNavRow: View {
+    let section: AppState.Section
+    let isSelected: Bool
+    let isAvailable: Bool
+    let action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: section.icon)
+                    .frame(width: 18)
+                Text(section.rawValue)
+                Spacer(minLength: 0)
+            }
+            .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(isSelected ? Color(hex: 0xDCDCE1)
+                        : hovering && isAvailable ? Color(hex: 0xE9E9EE) : .clear,
+                        in: RoundedRectangle(cornerRadius: 8))
+            .contentShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+        .disabled(!isAvailable)
+        .opacity(isAvailable ? 1 : 0.45)
+        .onHover { hovering = $0 }
+        .animation(.easeOut(duration: 0.12), value: hovering)
     }
 }
 
@@ -98,25 +138,11 @@ struct SidebarView: View {
                 ForEach(AppState.Section.allCases) { section in
                     let needsHome = section == .systemData || section == .categories
                     let available = state.phase == .done && (!needsHome || state.homeNode != nil)
-                    Button {
+                    SidebarNavRow(section: section,
+                                  isSelected: state.section == section && state.phase == .done,
+                                  isAvailable: available) {
                         state.section = section
-                    } label: {
-                        HStack(spacing: 10) {
-                            Image(systemName: section.icon)
-                                .frame(width: 18)
-                            Text(section.rawValue)
-                            Spacer()
-                        }
-                        .font(.system(size: 13, weight: state.section == section ? .semibold : .regular))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 7)
-                        .background(state.section == section && state.phase == .done
-                                    ? Color(hex: 0xDCDCE1) : .clear,
-                                    in: RoundedRectangle(cornerRadius: 8))
                     }
-                    .buttonStyle(.plain)
-                    .disabled(!available)
-                    .opacity(available ? 1 : 0.45)
                     .help(available ? "" :
                           (state.phase == .done
                            ? "Scan your home folder or full Mac to see this"

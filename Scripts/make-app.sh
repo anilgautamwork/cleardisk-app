@@ -5,10 +5,12 @@
 set -e
 cd "$(dirname "$0")/.."
 
-# Safety gate from the plan: permanent deletion must never enter the codebase.
-if grep -rn '\.removeItem(' Sources/ >/dev/null 2>&1; then
-  echo "FATAL: FileManager.removeItem call found in Sources/ — ClearDisk is trash-only." >&2
-  grep -rn '\.removeItem(' Sources/ >&2
+# Safety gate: permanent deletion is allowed in exactly ONE audited place —
+# TrashService.deleteForever (double-confirmed, type-to-confirm in UI).
+# Anywhere else, the build fails.
+if grep -rn '\.removeItem(' Sources/ | grep -v 'Sources/Core/TrashService.swift' | grep -q removeItem; then
+  echo "FATAL: FileManager.removeItem outside TrashService.deleteForever — ClearDisk is trash-only elsewhere." >&2
+  grep -rn '\.removeItem(' Sources/ | grep -v 'Sources/Core/TrashService.swift' >&2
   exit 1
 fi
 

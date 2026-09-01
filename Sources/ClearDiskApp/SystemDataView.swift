@@ -62,18 +62,6 @@ struct SystemDataView: View {
                     .foregroundStyle(UI.textSecondary)
             }
             compositionBar
-            if state.staleAfterClean {
-                HStack(spacing: 10) {
-                    Text("Cleaned! Files are in your Trash — empty it in Finder to finish freeing the space.")
-                        .font(.system(size: 12.5, weight: .medium))
-                        .foregroundStyle(UI.reviewText)
-                    Button("Rescan now") {
-                        state.startScan(path: state.scanPath)
-                    }
-                    .font(.system(size: 12.5, weight: .semibold))
-                    .buttonStyle(.link)
-                }
-            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 24)
@@ -150,7 +138,7 @@ struct SystemDataView: View {
             Spacer()
 
             if let path = row.revealPath, row.safety == .review {
-                Button("Reveal in Finder") { revealInFinder(path) }
+                Button("Review files") { state.browse(path) }
                     .buttonStyle(.link)
                     .font(.system(size: 12))
             }
@@ -263,8 +251,9 @@ struct SystemDataView: View {
                 failed += result.failed
             }
         }
-        state.staleAfterClean = true
-        state.showToast("Moved \(trashedItems.count) items (\(fmtBytes(selectedBytes))) to the Trash."
+        let reclaimed = selectedBytes
+        state.applyRemoval(paths: trashedItems.map(\.originalPath), movedToTrash: true)
+        state.showToast("Moved \(trashedItems.count) items (\(fmtBytes(reclaimed))) to the Trash."
                         + (failed > 0 ? " \(failed) skipped (in use or protected)." : "")
                         + " Empty the Trash to finish freeing the space.",
                         undo: trashedItems)

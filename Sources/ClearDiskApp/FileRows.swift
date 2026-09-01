@@ -45,6 +45,7 @@ struct FileRowsView: View {
     @Environment(AppState.self) private var state
     @Binding var files: [FoundFile]
     @State private var confirmTrash: FoundFile?
+    @State private var deleteRequest: DeleteForeverRequest?
 
     var body: some View {
         ScrollView {
@@ -64,7 +65,7 @@ struct FileRowsView: View {
                 if let file = confirmTrash,
                    let url = try? TrashService.trash(file.path) {
                     files.removeAll { $0.id == file.id }
-                    state.staleAfterClean = true
+                    state.applyRemoval(paths: [file.path], movedToTrash: true)
                     state.showToast("Moved \(file.name) (\(fmtBytes(file.size))) to the Trash.",
                                     undo: [TrashService.TrashedItem(originalPath: file.path, trashURL: url)])
                 }
@@ -73,6 +74,11 @@ struct FileRowsView: View {
             Button("Cancel", role: .cancel) { confirmTrash = nil }
         } message: {
             Text("You can put it back from the Trash anytime.")
+        }
+        .sheet(item: $deleteRequest) { request in
+            DeleteForeverSheet(request: request) {
+                files.removeAll { $0.path == request.path }
+            }
         }
     }
 
@@ -103,6 +109,15 @@ struct FileRowsView: View {
                 .font(.system(size: 12))
                 .disabled(!allowed)
                 .help(allowed ? "Moves to the Trash" : "Protected location — ClearDisk won't remove this")
+            Button("Delete…") {
+                deleteRequest = DeleteForeverRequest(name: file.name, path: file.path, size: file.size)
+            }
+            .buttonStyle(.link)
+            .font(.system(size: 12))
+            .foregroundStyle(allowed ? Color(hex: 0xFF3B30) : UI.textSecondary)
+            .disabled(!allowed)
+            .help(allowed ? "Delete forever — frees space immediately, cannot be undone"
+                  : "Protected location — ClearDisk won't remove this")
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)

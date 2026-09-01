@@ -178,6 +178,54 @@ struct FileIconChip: View {
     }
 }
 
+/// One-line plain-language explanation of a file or folder, for the treemap
+/// detail bar. Non-technical people should never see a bare path and shrug.
+func plainDescription(name: String, isDirectory: Bool, childCount: Int) -> String {
+    if isDirectory {
+        switch name {
+        case "Library": return "Hidden folder where your apps keep settings, caches and data — the heart of \"System Data\"."
+        case "Containers": return "Private storage each app keeps for itself — Docker's virtual disk and WhatsApp media live here."
+        case "Group Containers": return "Shared storage for app families (Microsoft, WhatsApp, Apple apps)."
+        case "Application Support": return "Files your apps need to work — settings, add-ons, saved data."
+        case "Caches": return "Temporary files apps rebuild automatically. Safe to clean."
+        case "Logs": return "Diagnostic text files. Your Mac won't miss them."
+        case "Developer": return "Xcode and simulator files. They rebuild themselves when needed."
+        case "node_modules": return "Downloaded code packages for one project — `npm install` brings them back."
+        case "Pictures", "Photos Library.photoslibrary": return "Your photos and videos. Precious — ClearDisk never suggests deleting these."
+        case "Movies", "Music": return "Your media files."
+        case "Documents", "Desktop": return "Your own files — yours to manage."
+        case "Downloads": return "Everything you've downloaded. Old installers pile up here."
+        case "Applications": return "Your installed apps."
+        case ".Trash": return "Already deleted — empty the Trash in Finder to actually free this space."
+        case ".cache", ".npm", ".cargo", ".gradle", ".m2":
+            return "Cache for a command-line tool. Rebuilt automatically when needed."
+        case ".ollama": return "Downloaded AI models — any of them can be re-pulled later."
+        case ".docker": return "Docker settings and data — manage space inside Docker Desktop."
+        case "DerivedData": return "Xcode build files. Rebuilt on the next build."
+        case "CloudStorage", "Mobile Documents": return "Synced from iCloud or a cloud drive — deleting here deletes everywhere."
+        default:
+            if name.hasSuffix(".app") { return "An application. Click Reveal to see it in Finder." }
+            if name.hasSuffix(".photoslibrary") { return "A photo library. Open it with Photos, not Finder." }
+            if name.hasPrefix(".") { return "A hidden folder used by some tool — invisible in Finder by default." }
+            return "A folder holding \(childCount) item\(childCount == 1 ? "" : "s")."
+        }
+    }
+    if name == "Docker.raw" {
+        return "Docker's virtual disk — reclaim space inside Docker Desktop, don't delete it."
+    }
+    let ext = (name as NSString).pathExtension.lowercased()
+    switch ext {
+    case "jpg", "jpeg", "png", "heic", "gif", "webp", "tiff", "raw": return "An image file."
+    case "mp4", "mov", "mkv", "avi", "webm", "m4v": return "A video file."
+    case "mp3", "wav", "aac", "flac", "m4a": return "An audio file."
+    case "zip", "tar", "gz", "7z", "rar": return "A compressed archive — if you've extracted it already, it may be expendable."
+    case "dmg", "iso": return "A disk image — usually an installer you can delete after installing."
+    case "safetensors", "gguf", "ckpt", "pt", "onnx", "bin": return "An AI model file — big, but re-downloadable."
+    case "pdf", "doc", "docx", "pages", "txt", "md": return "A document."
+    default: return "A file."
+    }
+}
+
 /// Wraps a row and paints a hover tint — table rows feel alive.
 struct HoverRow<Content: View>: View {
     @ViewBuilder var content: Content

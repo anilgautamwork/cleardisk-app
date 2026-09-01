@@ -29,6 +29,7 @@ final class AppState {
         case systemData = "System Data"
         case reclaimable = "Dev Junk"
         case categories = "Categories"
+        case browse = "Browse"
         case treemap = "Treemap"
         case largeFiles = "Large Files"
         case search = "Search"
@@ -39,6 +40,7 @@ final class AppState {
             case .systemData: "internaldrive"
             case .reclaimable: "hammer"
             case .categories: "square.grid.2x2"
+            case .browse: "folder"
             case .treemap: "rectangle.split.3x3"
             case .largeFiles: "doc.on.doc"
             case .search: "magnifyingglass"
@@ -63,13 +65,45 @@ final class AppState {
     var scanSeconds: Double = 0
     var volumeTotal: Int64 = 0
     var volumeFree: Int64 = 0
-    /// Set after a clean so views can suggest a rescan.
-    var staleAfterClean = false
+    /// Bumped whenever the in-memory tree is surgically updated after a
+    /// trash/delete — views listening to it refresh instantly, no rescan.
+    var treeVersion = 0
+    private var pendingUndoNodes: [TreeSurgery.Removed] = []
 
-    /// Size of ~/.Trash as of the last scan — cleaned files land there and
-    /// still occupy disk until the user empties it in Finder.
+    /// Size of ~/.Trash — kept current by tree surgery after cleans.
     var trashBytes: Int64 {
-        homeNode?.child(".Trash")?.size ?? 0
+        _ = treeVersion
+        return homeNode?.child(".Trash")?.size ?? 0
+    }
+
+    /// Update the tree and every derived view after the app removed `paths`
+    /// from disk. Trash moves grow the .Trash node; permanent deletes shrink
+    /// the totals outright.
+    func applyRemoval(paths: [String], movedToTrash: Bool) {
+        guard let root else { return }
+        let result = TreeSurgery.remove(paths: paths, root: root, scanPath: scanPath)
+        if movedToTrash {
+            TreeSurgery.adjustTrash(by: result.bytes, root: root,
+                                    scanPath: scanPath, homePath: NSHomeDirectory())
+            pendingUndoNodes = result.removed
+        } else {
+            stats?.totalBytes -= result.bytes
+            pendingUndoNodes = []
+        }
+        rebuildDerived()
+        refreshVolumeInfo()
+        treeVersion += 1
+    }
+
+    private func rebuildDerived() {
+        guard let root else { return }
+        let homePath = NSHomeDirectory()
+        if let homeNode {
+            report = SystemDataScan.build(homeRoot: homeNode, homePath: homePath)
+            categoryTotals = Categorizer.homeTotals(root: homeNode)
+        }
+        devJunkItems = DevJunkScan.find(root: root, scanPath: scanPath,
+                                        homeRoot: homeNode, homePath: homePath)
     }
 
     // MARK: - toast + undo
@@ -83,6 +117,14 @@ final class AppState {
     var toast: Toast?
     var devJunkItems: [DevJunkItem] = []
     var fdaSheetPresented = false
+    /// Absolute path the Browse section should open at.
+    var browsePath: String?
+
+    /// Open a location in the in-app Browse screen (review without Finder).
+    func browse(_ path: String) {
+        browsePath = path
+        section = .browse
+    }
 
     /// True when the last scan hit locked folders and FDA isn't granted.
     var showFDAHint: Bool {
@@ -104,7 +146,17 @@ final class AppState {
         guard let items = toast?.undoItems else { return }
         toast = nil
         let restored = TrashService.restore(items)
-        showToast("Put back \(restored) of \(items.count) item\(items.count == 1 ? "" : "s"). Rescan to refresh the numbers.")
+        if let root, !pendingUndoNodes.isEmpty {
+            TreeSurgery.reattach(pendingUndoNodes, root: root, scanPath: scanPath)
+            let bytes = pendingUndoNodes.reduce(Int64(0)) { $0 + $1.node.size }
+            TreeSurgery.adjustTrash(by: -bytes, root: root,
+                                    scanPath: scanPath, homePath: NSHomeDirectory())
+            pendingUndoNodes = []
+            rebuildDerived()
+            refreshVolumeInfo()
+            treeVersion += 1
+        }
+        showToast("Put back \(restored) of \(items.count) item\(items.count == 1 ? "" : "s") — numbers updated.")
     }
 
     init() {
@@ -126,7 +178,6 @@ final class AppState {
         phase = .scanning
         progressFiles = 0
         progressBytes = 0
-        staleAfterClean = false
         runScan(path: path, started: Date())
     }
 
@@ -175,17 +226,14 @@ final class AppState {
             homeNode = nil
         }
 
-        if let homeNode {
-            report = SystemDataScan.build(homeRoot: homeNode, homePath: homePath)
-            categoryTotals = Categorizer.homeTotals(root: homeNode)
-            section = .systemData
-        } else {
+        if homeNode == nil {
             report = nil
             categoryTotals = []
-            section = .treemap
         }
-        devJunkItems = DevJunkScan.find(root: result.root, scanPath: scanPath,
-                                        homeRoot: homeNode, homePath: homePath)
+        section = homeNode != nil ? .systemData : .treemap
+        pendingUndoNodes = []
+        rebuildDerived()
+        treeVersion += 1
         refreshVolumeInfo()
         phase = .done
     }

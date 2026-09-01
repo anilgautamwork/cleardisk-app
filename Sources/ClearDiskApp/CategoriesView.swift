@@ -52,32 +52,70 @@ struct CategoriesView: View {
     }
 
     private func card(_ total: CategoryTotal) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                Circle()
-                    .fill(UI.color(for: total.category))
-                    .frame(width: 10, height: 10)
-                Text(total.category.rawValue)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(UI.textSecondary)
-            }
-            Text(fmtBytes(total.bytes))
-                .font(.system(size: 26, weight: .bold))
-            Text(UI.blurb(for: total.category))
-                .font(.system(size: 12))
-                .foregroundStyle(UI.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-            if total.category == .systemData {
-                Button("See what's inside") {
-                    state.section = .systemData
+        let action = cardAction(for: total.category)
+        return Button {
+            action?.perform()
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(UI.color(for: total.category))
+                        .frame(width: 10, height: 10)
+                    Text(total.category.rawValue)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(UI.textSecondary)
                 }
-                .buttonStyle(.link)
-                .font(.system(size: 12.5, weight: .semibold))
+                Text(fmtBytes(total.bytes))
+                    .font(.system(size: 26, weight: .bold))
+                Text(UI.blurb(for: total.category))
+                    .font(.system(size: 12))
+                    .foregroundStyle(UI.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let action {
+                    Text(action.label)
+                        .font(.system(size: 12.5, weight: .semibold))
+                        .foregroundStyle(UI.accent)
+                }
             }
+            .frame(maxWidth: .infinity, minHeight: 128, alignment: .topLeading)
+            .padding(16)
+            .contentShape(RoundedRectangle(cornerRadius: 12))
         }
-        .frame(maxWidth: .infinity, minHeight: 128, alignment: .topLeading)
-        .padding(16)
-        .background(.white, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(UI.cardBorder))
+        .buttonStyle(.plain)
+        .card()
+        .disabled(action == nil)
+    }
+
+    private struct CardAction {
+        let label: String
+        let perform: () -> Void
+    }
+
+    /// Every card leads somewhere: a review screen inside the app.
+    private func cardAction(for category: Core.Category) -> CardAction? {
+        switch category {
+        case .systemData:
+            return CardAction(label: "See what's inside") { state.section = .systemData }
+        case .devJunk:
+            return CardAction(label: "See what's reclaimable") { state.section = .reclaimable }
+        default:
+            let home = NSHomeDirectory()
+            let path: String? = switch category {
+            case .photosVideos: home + "/Pictures"
+            case .music: home + "/Music"
+            case .documents: home + "/Documents"
+            case .downloads: home + "/Downloads"
+            case .apps: home + "/Applications"
+            case .mail: home + "/Library/Mail"
+            case .cloud: home + "/Library/CloudStorage"
+            case .trash: home + "/.Trash"
+            default: nil
+            }
+            guard let path, let root = state.root,
+                  TreeSurgery.chain(for: path, root: root, scanPath: state.scanPath) != nil else {
+                return nil
+            }
+            return CardAction(label: "Review files") { state.browse(path) }
+        }
     }
 }

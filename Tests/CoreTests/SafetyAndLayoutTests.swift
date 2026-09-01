@@ -77,6 +77,51 @@ final class SafetyAndLayoutTests: XCTestCase {
         _ = try TrashService.trash(dir)
     }
 
+    func testDeleteForeverRespectsBlocklistAndDeletes() throws {
+        // Protected paths refuse even for permanent deletion.
+        XCTAssertThrowsError(try TrashService.deleteForever(NSHomeDirectory() + "/Library/Preferences"))
+
+        let dir = NSHomeDirectory() + "/.cleardisk-df-test-\(UUID().uuidString)"
+        try FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: false)
+        try "x".write(toFile: dir + "/f.txt", atomically: true, encoding: .utf8)
+        try TrashService.deleteForever(dir)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: dir))
+    }
+
+    // MARK: - TreeSurgery
+
+    func testTreeSurgeryRemoveTrashAndReattach() {
+        func dir(_ name: String, size: Int64, children: [FileNode] = []) -> FileNode {
+            let node = FileNode(name: name, isDirectory: true, size: size, modTime: 0)
+            node.children = children
+            return node
+        }
+        let file = FileNode(name: "big.bin", isDirectory: false, size: 40, modTime: 0)
+        let a = dir("a", size: 60, children: [file])
+        let root = dir("home", size: 100, children: [a])
+        let scanPath = "/Users/tester"
+
+        let result = TreeSurgery.remove(paths: [scanPath + "/a/big.bin"],
+                                        root: root, scanPath: scanPath)
+        XCTAssertEqual(result.bytes, 40)
+        XCTAssertEqual(a.size, 20)
+        XCTAssertEqual(root.size, 60)
+        XCTAssertNil(a.child("big.bin"))
+
+        // Moving to Trash grows .Trash and puts the bytes back at the root.
+        TreeSurgery.adjustTrash(by: 40, root: root, scanPath: scanPath, homePath: scanPath)
+        XCTAssertEqual(root.child(".Trash")?.size, 40)
+        XCTAssertEqual(root.size, 100)
+
+        // Undo restores everything.
+        TreeSurgery.reattach(result.removed, root: root, scanPath: scanPath)
+        TreeSurgery.adjustTrash(by: -40, root: root, scanPath: scanPath, homePath: scanPath)
+        XCTAssertEqual(a.size, 60)
+        XCTAssertEqual(root.size, 100)
+        XCTAssertEqual(root.child(".Trash")?.size, 0)
+        XCTAssertNotNil(a.child("big.bin"))
+    }
+
     // MARK: - Squarify
 
     func testSquarifyCoversAreaExactly() {

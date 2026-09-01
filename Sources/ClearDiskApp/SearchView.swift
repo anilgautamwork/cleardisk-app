@@ -43,6 +43,7 @@ struct SearchView: View {
             results = []
             runSearch()
         }
+        .onChange(of: state.treeVersion) { runSearch() }
     }
 
     private func runSearch() {

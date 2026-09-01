@@ -96,6 +96,17 @@ public enum TrashService {
         return (trashed, failed)
     }
 
+    /// Permanent deletion — the ONLY call site of FileManager.removeItem in
+    /// the app (the release script enforces this). UI must gate it behind
+    /// double confirmation with type-the-name validation; there is no undo.
+    /// Same deny-by-default blocklist as trashing.
+    public static func deleteForever(_ path: String) throws {
+        if case .refused(let reason) = verdict(forTrashing: path) {
+            throw TrashError.refused(reason)
+        }
+        try FileManager.default.removeItem(atPath: path)
+    }
+
     /// Undo: move trashed items back where they came from. Returns how many
     /// came back (items the user already deleted from the Trash won't).
     public static func restore(_ items: [TrashedItem]) -> Int {

@@ -94,7 +94,7 @@ struct ReclaimableView: View {
 
             Spacer()
 
-            Button("Reveal") { revealInFinder(item.path) }
+            Button("Review") { state.browse(item.path) }
                 .buttonStyle(.link)
                 .font(.system(size: 12))
 
@@ -184,10 +184,8 @@ struct ReclaimableView: View {
             }
         }
         let cleanedBytes = selectedBytes
-        let trashedPaths = Set(trashedItems.map(\.originalPath))
-        state.devJunkItems.removeAll { trashedPaths.contains($0.path) }
         selected.removeAll()
-        state.staleAfterClean = true
+        state.applyRemoval(paths: trashedItems.map(\.originalPath), movedToTrash: true)
         state.showToast("Moved \(trashedItems.count) folders (\(fmtBytes(cleanedBytes))) to the Trash."
                         + (failed > 0 ? " \(failed) skipped." : ""),
                         undo: trashedItems)
