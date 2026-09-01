@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "SF Pro Text", "Helvetica Neue", sans-serif; color: #2d2a26; }
+    a { color: #e8590c; } a:hover { color: #d9480f; }
+  </style>
+</helmet>
+<div style="width: 1200px; height: 780px; background: #faf6ef; border-radius: 12px; overflow: hidden; border: 1px solid #e6ddcf; display: flex; flex-direction: column; padding: 20px 28px; box-sizing: border-box; gap: 18px;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; gap: 8px;">
+      <div style="width: 12px; height: 12px; border-radius: 6px; background: #ff5f57;"></div>
+      <div style="width: 12px; height: 12px; border-radius: 6px; background: #febc2e;"></div>
+      <div style="width: 12px; height: 12px; border-radius: 6px; background: #28c840;"></div>
+    </div>
+    <div style="font-size: 14px; font-weight: 700; color: #8a8172;">ClearDisk</div>
+    <div style="font-size: 13px; font-weight: 600; color: #e8590c; background: #ffe8d9; border-radius: 18px; padding: 6px 14px;">Rescan</div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 4px;">
+    <div style="font-size: 34px; font-weight: 800; letter-spacing: -0.5px;">Your Mac is carrying <span style="color: #e8590c;">187.4 GB</span> of mystery weight</div>
+    <div style="font-size: 16px; color: #8a8172;">Good news: 63.8 GB of it can go, safely. Here's the story.</div>
+  </div>
+
+  <div style="flex-grow: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;">
+    <div style="background: #dcefe2; border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 14px; font-weight: 700; color: #2b7a44;">Totally safe to clean</div>
+      <div style="font-size: 38px; font-weight: 800;">63.8 GB</div>
+      <div style="font-size: 13.5px; color: #4a6b54; line-height: 1.5;">Caches, logs and build files. Your apps rebuild these on their own — cleaning them changes nothing you'll notice.</div>
+      <div style="margin-top: auto; background: #2b7a44; color: #ffffff; border-radius: 14px; padding: 12px; text-align: center; font-size: 14px; font-weight: 700;">Clean these for me</div>
+    </div>
+    <div style="background: #ffe9cf; border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 14px; font-weight: 700; color: #b25e09;">Worth a quick look</div>
+      <div style="font-size: 38px; font-weight: 800;">108.5 GB</div>
+      <div style="font-size: 13.5px; color: #8a6b45; line-height: 1.5;">Old iPhone backups, snapshots, big hidden files and app leftovers. Probably fine to remove — you decide, we explain each one.</div>
+      <div style="margin-top: auto; background: #ffffff; color: #b25e09; border-radius: 14px; padding: 12px; text-align: center; font-size: 14px; font-weight: 700;">Review together</div>
+    </div>
+    <div style="background: #e9e6e0; border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 14px; font-weight: 700; color: #6e675c;">We leave alone</div>
+      <div style="font-size: 38px; font-weight: 800; color: #6e675c;">15.1 GB</div>
+      <div style="font-size: 13.5px; color: #837b6e; line-height: 1.5;">Core macOS files your Mac needs to run. ClearDisk can't touch these — and neither should anyone else.</div>
+      <div style="margin-top: auto; font-size: 13px; font-weight: 600; color: #8a8172; text-align: center; padding: 12px;">Locked for your safety</div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; border-radius: 18px; padding: 16px 22px;">
+    <div style="font-size: 14px; color: #8a8172;">Everything goes to the Trash first — you can always put it back.</div>
+    <div style="background: #e8590c; color: #ffffff; border-radius: 14px; padding: 12px 24px; font-size: 15px; font-weight: 700;">Unlock cleaning — $9.99 once</div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

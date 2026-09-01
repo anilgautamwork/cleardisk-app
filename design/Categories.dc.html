@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; color: #1d1d1f; }
+    a { color: #0071e3; text-decoration: none; } a:hover { color: #0077ed; }
+  </style>
+</helmet>
+<div style="width: 1200px; height: 780px; display: flex; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #d2d2d7;">
+
+  <!-- Sidebar -->
+  <div style="width: 248px; background: #f5f5f7; border-right: 1px solid #e8e8ed; display: flex; flex-direction: column; padding: 16px 14px; box-sizing: border-box; gap: 20px;">
+    <div style="display: flex; gap: 8px; padding: 2px 4px;">
+      <div style="width: 12px; height: 12px; border-radius: 6px; background: #ff5f57;"></div>
+      <div style="width: 12px; height: 12px; border-radius: 6px; background: #febc2e;"></div>
+      <div style="width: 12px; height: 12px; border-radius: 6px; background: #28c840;"></div>
+    </div>
+    <div style="background: #ffffff; border: 1px solid #e8e8ed; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+      <svg width="96" height="96" viewBox="0 0 96 96">
+        <circle cx="48" cy="48" r="40" fill="none" stroke="#e8e8ed" stroke-width="10"></circle>
+        <circle cx="48" cy="48" r="40" fill="none" stroke="#0071e3" stroke-width="10" stroke-linecap="round" stroke-dasharray="192 251" transform="rotate(-90 48 48)"></circle>
+        <text x="48" y="45" text-anchor="middle" font-size="17" font-weight="700" fill="#1d1d1f">76%</text>
+        <text x="48" y="61" text-anchor="middle" font-size="9" fill="#6e6e73">full</text>
+      </svg>
+      <div style="text-align: center;">
+        <div style="font-size: 13px; font-weight: 600;">761 GB used of 994 GB</div>
+        <div style="font-size: 12px; color: #6e6e73;">233 GB free</div>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 2px;">
+      <div style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; font-size: 13px;">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="#6e6e73" stroke-width="1.6" stroke-linecap="round"><rect x="2.5" y="2.5" width="15" height="15" rx="2.5"></rect><path d="M2.5 7.5h15M7.5 7.5v10"></path></svg>
+        Overview
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; font-size: 13px;">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="#6e6e73" stroke-width="1.6" stroke-linecap="round"><ellipse cx="10" cy="5" rx="7" ry="2.6"></ellipse><path d="M3 5v10c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6V5M3 10c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6"></path></svg>
+        System Data
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; background: #dcdce1;">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="1.6" stroke-linecap="round"><rect x="2.5" y="2.5" width="6.5" height="6.5" rx="1.5"></rect><rect x="11" y="2.5" width="6.5" height="6.5" rx="1.5"></rect><rect x="2.5" y="11" width="6.5" height="6.5" rx="1.5"></rect><rect x="11" y="11" width="6.5" height="6.5" rx="1.5"></rect></svg>
+        Categories
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; font-size: 13px;">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="#6e6e73" stroke-width="1.6" stroke-linecap="round"><rect x="2.5" y="2.5" width="15" height="15" rx="2"></rect><path d="M2.5 8h9M11.5 2.5v15M11.5 12h6"></path></svg>
+        Treemap
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; font-size: 13px;">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="#6e6e73" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="3.5" width="14" height="11" rx="1.5"></rect><path d="M6.5 17h7M10 14.5V17M6 11l2.5-3 2 2 3-4"></path></svg>
+        Large Files
+      </div>
+    </div>
+    <div style="flex-grow: 1;"></div>
+    <div style="background: #ffffff; border: 1px solid #e8e8ed; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px;">
+      <div style="font-size: 12px; font-weight: 600;">Scanning is free, forever</div>
+      <div style="font-size: 11.5px; color: #6e6e73; line-height: 1.4;">Cleaning unlocks with a one-time $9.99 purchase. No subscription.</div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+    <div style="height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; border-bottom: 1px solid #e8e8ed; box-sizing: border-box;">
+      <div style="font-size: 15px; font-weight: 600;">Categories</div>
+      <div style="font-size: 12px; color: #6e6e73;">Scanned 2 minutes ago</div>
+    </div>
+
+    <div style="padding: 22px 24px 10px;">
+      <div style="font-size: 26px; font-weight: 700; letter-spacing: -0.3px;">Where your 761 GB lives</div>
+      <div style="font-size: 14px; color: #6e6e73; margin-top: 4px;">Plain-language groups, no file paths to decode. Click any card to see inside.</div>
+    </div>
+
+    <!-- Proportional bar -->
+    <div style="padding: 6px 24px 18px;">
+      <div style="display: flex; height: 14px; border-radius: 7px; overflow: hidden;">
+        <div style="width: 28.2%; background: #af52de;"></div>
+        <div style="width: 24.6%; background: #8e8e93;"></div>
+        <div style="width: 12.7%; background: #007aff;"></div>
+        <div style="width: 11.7%; background: #32ade6;"></div>
+        <div style="width: 8.4%; background: #ff9f0a;"></div>
+        <div style="width: 5.6%; background: #34c759;"></div>
+        <div style="width: 4.1%; background: #ff2d55;"></div>
+        <div style="width: 4.7%; background: #c7c7cc;"></div>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <div style="flex-grow: 1; padding: 0 24px 24px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;">
+
+      <div style="background: #ffffff; border: 1px solid #e8e8ed; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 10px; height: 10px; border-radius: 5px; background: #af52de;"></div><div style="font-size: 13px; font-weight: 600; color: #6e6e73;">Photos &amp; Videos</div></div>
+        <div style="font-size: 26px; font-weight: 700;">214.6 GB</div>
+        <div style="font-size: 12px; color: #6e6e73; line-height: 1.45;">Your memories. We never suggest deleting these.</div>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid #d5d5da; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 6px rgba(0,0,0,0.06);">
+        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 10px; height: 10px; border-radius: 5px; background: #8e8e93;"></div><div style="font-size: 13px; font-weight: 600; color: #6e6e73;">System Data</div></div>
+        <div style="font-size: 26px; font-weight: 700;">187.4 GB</div>
+        <div style="font-size: 12px; color: #6e6e73; line-height: 1.45;">The mystery number, opened up. <span style="color: #1d7a3e; font-weight: 600;">63.8 GB reclaimable.</span></div>
+        <div style="font-size: 12.5px; font-weight: 600; color: #0071e3;">See what's inside</div>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid #e8e8ed; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 10px; height: 10px; border-radius: 5px; background: #007aff;"></div><div style="font-size: 13px; font-weight: 600; color: #6e6e73;">Apps</div></div>
+        <div style="font-size: 26px; font-weight: 700;">96.3 GB</div>
+        <div style="font-size: 12px; color: #6e6e73; line-height: 1.45;">62 apps installed. 9 untouched for over a year.</div>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid #e8e8ed; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 10px; height: 10px; border-radius: 5px; background: #32ade6;"></div><div style="font-size: 13px; font-weight: 600; color: #6e6e73;">Documents</div></div>
+        <div style="font-size: 26px; font-weight: 700;">88.9 GB</div>
+        <div style="font-size: 12px; color: #6e6e73; line-height: 1.45;">Your files and folders — yours to manage.</div>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid #e8e8ed; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 10px; height: 10px; border-radius: 5px; background: #ff9f0a;"></div><div style="font-size: 13px; font-weight: 600; color: #6e6e73;">Developer Junk</div></div>
+        <div style="font-size: 26px; font-weight: 700;">64.3 GB</div>
+        <div style="font-size: 12px; color: #6e6e73; line-height: 1.45;">npm, Docker and other coding caches. <span style="color: #1d7a3e; font-weight: 600;">All safe to clean.</span></div>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid #e8e8ed; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 10px; height: 10px; border-radius: 5px; background: #34c759;"></div><div style="font-size: 13px; font-weight: 600; color: #6e6e73;">Downloads</div></div>
+        <div style="font-size: 26px; font-weight: 700;">42.7 GB</div>
+        <div style="font-size: 12px; color: #6e6e73; line-height: 1.45;">38 old downloads you probably forgot about.</div>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid #e8e8ed; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 10px; height: 10px; border-radius: 5px; background: #ff2d55;"></div><div style="font-size: 13px; font-weight: 600; color: #6e6e73;">Music &amp; Audio</div></div>
+        <div style="font-size: 26px; font-weight: 700;">31.2 GB</div>
+        <div style="font-size: 12px; color: #6e6e73; line-height: 1.45;">Local music and audio files.</div>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid #e8e8ed; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 10px; height: 10px; border-radius: 5px; background: #c7c7cc;"></div><div style="font-size: 13px; font-weight: 600; color: #6e6e73;">Other</div></div>
+        <div style="font-size: 26px; font-weight: 700;">35.6 GB</div>
+        <div style="font-size: 12px; color: #6e6e73; line-height: 1.45;">Everything that fits nowhere else.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

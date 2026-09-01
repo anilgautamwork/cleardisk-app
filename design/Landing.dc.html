@@ -1,0 +1,217 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; color: #1d1d1f; }
+    a { color: #0071e3; text-decoration: none; } a:hover { color: #0077ed; }
+    .display { font-family: "Bricolage Grotesque", "Avenir Next", -apple-system, sans-serif; }
+  </style>
+</helmet>
+<div style="width: 1440px; background: #ffffff; display: flex; flex-direction: column;">
+
+  <!-- Nav -->
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 80px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <svg width="30" height="30" viewBox="0 0 88 88"><rect x="4" y="4" width="80" height="80" rx="20" fill="#0071e3"></rect><ellipse cx="44" cy="30" rx="22" ry="8" fill="none" stroke="#ffffff" stroke-width="5"></ellipse><path d="M22 30v22c0 4.4 9.8 8 22 8s22-3.6 22-8V30M22 41c0 4.4 9.8 8 22 8s22-3.6 22-8" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"></path></svg>
+      <div class="display" style="font-size: 20px; font-weight: 700;">ClearDisk</div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 28px; font-size: 14px; color: #494949;">
+      <div>How it works</div>
+      <div>Pricing</div>
+      <div>FAQ</div>
+      <div style="background: #0071e3; color: #ffffff; font-weight: 600; padding: 9px 18px; border-radius: 9px;">Download Free</div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div style="display: flex; align-items: center; gap: 64px; padding: 56px 80px 72px;">
+    <div style="flex-grow: 1; max-width: 580px; display: flex; flex-direction: column; gap: 22px;">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #b25e09; background: #fff4e5; border-radius: 20px; padding: 6px 14px; align-self: flex-start;">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#b25e09" stroke-width="1.8" stroke-linecap="round"><path d="M10 7v4M10 14.2v.1M2.8 16.5h14.4L10 3.2 2.8 16.5z" stroke-linejoin="round"></path></svg>
+        System Data — 187 GB. Sound familiar?
+      </div>
+      <h1 class="display" style="font-size: 54px; font-weight: 800; line-height: 1.08; letter-spacing: -1px; margin: 0; text-wrap: balance;">Clear System Data on your Mac</h1>
+      <div style="font-size: 18px; color: #494949; line-height: 1.55;">macOS lumps caches, old backups and snapshots into one giant number it refuses to explain. ClearDisk opens it up, shows you exactly what's inside, and safely reclaims the space.</div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="background: #0071e3; color: #ffffff; font-size: 16px; font-weight: 600; padding: 14px 28px; border-radius: 11px;">Download Free Scanner</div>
+        <div style="font-size: 13px; color: #6e6e73; line-height: 1.5;">Free scan · Nothing deleted<br>macOS 26+ · Small download</div>
+      </div>
+      <div style="font-size: 13px; color: #6e6e73;">Cleaning unlocks with a one-time <span style="font-weight: 700; color: #1d1d1f;">$9.99</span> purchase. No subscription, ever.</div>
+    </div>
+
+    <!-- App mock -->
+    <div style="width: 560px; flex-shrink: 0; background: #f5f5f7; border: 1px solid #e8e8ed; border-radius: 18px; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; gap: 7px;">
+        <div style="width: 11px; height: 11px; border-radius: 6px; background: #ff5f57;"></div>
+        <div style="width: 11px; height: 11px; border-radius: 6px; background: #febc2e;"></div>
+        <div style="width: 11px; height: 11px; border-radius: 6px; background: #28c840;"></div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <div style="font-size: 34px; font-weight: 700;">187.4 GB</div>
+        <div style="font-size: 13px; color: #6e6e73;">of System Data, explained</div>
+      </div>
+      <div style="background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #ececf0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; border-bottom: 1px solid #f0f0f2; font-size: 13px;">
+          <div>Time Machine snapshots</div>
+          <div style="display: flex; align-items: center; gap: 8px;"><span style="font-weight: 600;">42.1 GB</span><span style="font-size: 11px; font-weight: 600; color: #b25e09; background: #fff4e5; border-radius: 12px; padding: 2px 8px;">Review</span></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; border-bottom: 1px solid #f0f0f2; font-size: 13px;">
+          <div>Xcode &amp; simulator files</div>
+          <div style="display: flex; align-items: center; gap: 8px;"><span style="font-weight: 600;">30.0 GB</span><span style="font-size: 11px; font-weight: 600; color: #1d7a3e; background: #e5f6ec; border-radius: 12px; padding: 2px 8px;">Safe</span></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; border-bottom: 1px solid #f0f0f2; font-size: 13px;">
+          <div>iPhone &amp; iPad backups</div>
+          <div style="display: flex; align-items: center; gap: 8px;"><span style="font-weight: 600;">24.8 GB</span><span style="font-size: 11px; font-weight: 600; color: #b25e09; background: #fff4e5; border-radius: 12px; padding: 2px 8px;">Review</span></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; border-bottom: 1px solid #f0f0f2; font-size: 13px;">
+          <div>Application caches</div>
+          <div style="display: flex; align-items: center; gap: 8px;"><span style="font-weight: 600;">18.7 GB</span><span style="font-size: 11px; font-weight: 600; color: #1d7a3e; background: #e5f6ec; border-radius: 12px; padding: 2px 8px;">Safe</span></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: #fbfbfd; font-size: 13.5px;">
+          <div style="font-weight: 700; color: #1d7a3e;">You can safely reclaim 63.8 GB</div>
+          <div style="background: #0071e3; color: #ffffff; font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 8px;">Clean Safely</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Proof strip (placeholder) -->
+  <div style="margin: 0 80px; border-top: 1px solid #ececf0; border-bottom: 1px solid #ececf0; padding: 26px 0; display: flex; align-items: center; justify-content: center; gap: 40px;">
+    <div style="font-size: 14px; color: #98989d; font-style: italic;">[TESTIMONIAL — add a real user quote after launch]</div>
+    <div style="font-size: 14px; color: #98989d; font-style: italic;">[PRESS / COMMUNITY MENTION placeholder]</div>
+  </div>
+
+  <!-- How it works -->
+  <div style="padding: 80px 80px 40px; display: flex; flex-direction: column; gap: 40px;">
+    <h2 class="display" style="font-size: 36px; font-weight: 700; letter-spacing: -0.5px; margin: 0; text-align: center;">Three steps to your space back</h2>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px;">
+      <div style="background: #f5f5f7; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 12px;">
+        <div class="display" style="font-size: 15px; font-weight: 700; color: #0071e3;">1 — Scan, free</div>
+        <div style="font-size: 17px; font-weight: 700;">See where every gigabyte went</div>
+        <div style="font-size: 14px; color: #494949; line-height: 1.55;">ClearDisk scans your whole Mac in about a minute. Scanning is free forever and nothing is ever deleted without you.</div>
+      </div>
+      <div style="background: #f5f5f7; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 12px;">
+        <div class="display" style="font-size: 15px; font-weight: 700; color: #0071e3;">2 — Understand</div>
+        <div style="font-size: 17px; font-weight: 700;">System Data, in plain English</div>
+        <div style="font-size: 14px; color: #494949; line-height: 1.55;">Every item gets a one-line explanation and an honest label: Safe to clean, Review first, or Leave it alone.</div>
+      </div>
+      <div style="background: #f5f5f7; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 12px;">
+        <div class="display" style="font-size: 15px; font-weight: 700; color: #0071e3;">3 — Clean, safely</div>
+        <div style="font-size: 17px; font-weight: 700;">Everything goes to the Trash first</div>
+        <div style="font-size: 14px; color: #494949; line-height: 1.55;">ClearDisk never permanently deletes anything. Files move to your Trash, so you can always change your mind.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- What it finds -->
+  <div style="padding: 60px 80px; display: flex; gap: 64px; align-items: center;">
+    <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 18px; max-width: 540px;">
+      <h2 class="display" style="font-size: 36px; font-weight: 700; letter-spacing: -0.5px; margin: 0;">Built for the "why is my storage full?" moment</h2>
+      <div style="font-size: 16px; color: #494949; line-height: 1.6;">You've emptied the Trash, deleted Downloads, cleared caches from YouTube tutorials — and System Data is still enormous. That's because the big stuff hides in places Finder won't show you. ClearDisk finds it all:</div>
+      <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14.5px;">
+        <div style="display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 12 12" fill="none" stroke="#1d7a3e" stroke-width="1.8" stroke-linecap="round"><path d="M2 6.5 4.8 9 10 3.5"></path></svg>Time Machine local snapshots</div>
+        <div style="display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 12 12" fill="none" stroke="#1d7a3e" stroke-width="1.8" stroke-linecap="round"><path d="M2 6.5 4.8 9 10 3.5"></path></svg>Old iPhone &amp; iPad backups</div>
+        <div style="display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 12 12" fill="none" stroke="#1d7a3e" stroke-width="1.8" stroke-linecap="round"><path d="M2 6.5 4.8 9 10 3.5"></path></svg>App, browser and system caches</div>
+        <div style="display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 12 12" fill="none" stroke="#1d7a3e" stroke-width="1.8" stroke-linecap="round"><path d="M2 6.5 4.8 9 10 3.5"></path></svg>Xcode, Docker and other developer files</div>
+        <div style="display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 12 12" fill="none" stroke="#1d7a3e" stroke-width="1.8" stroke-linecap="round"><path d="M2 6.5 4.8 9 10 3.5"></path></svg>Leftovers from apps you deleted years ago</div>
+        <div style="display: flex; align-items: center; gap: 10px;"><svg width="16" height="16" viewBox="0 0 12 12" fill="none" stroke="#1d7a3e" stroke-width="1.8" stroke-linecap="round"><path d="M2 6.5 4.8 9 10 3.5"></path></svg>Large hidden files buried in system folders</div>
+      </div>
+    </div>
+    <div style="width: 520px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; height: 22px; border-radius: 11px; overflow: hidden;">
+        <div style="width: 28%; background: #af52de;"></div>
+        <div style="width: 25%; background: #8e8e93;"></div>
+        <div style="width: 13%; background: #007aff;"></div>
+        <div style="width: 12%; background: #32ade6;"></div>
+        <div style="width: 8%; background: #ff9f0a;"></div>
+        <div style="width: 6%; background: #34c759;"></div>
+        <div style="width: 8%; background: #c7c7cc;"></div>
+      </div>
+      <div style="font-size: 13px; color: #6e6e73; text-align: center;">Your whole disk, one honest picture — photos, apps, documents and the System Data nobody explains.</div>
+      <div style="display: flex; justify-content: center; gap: 14px; font-size: 12px; color: #6e6e73; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 8px; height: 8px; border-radius: 3px; background: #af52de;"></div>Photos</div>
+        <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 8px; height: 8px; border-radius: 3px; background: #8e8e93;"></div>System Data</div>
+        <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 8px; height: 8px; border-radius: 3px; background: #007aff;"></div>Apps</div>
+        <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 8px; height: 8px; border-radius: 3px; background: #32ade6;"></div>Documents</div>
+        <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 8px; height: 8px; border-radius: 3px; background: #ff9f0a;"></div>Dev junk</div>
+        <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 8px; height: 8px; border-radius: 3px; background: #34c759;"></div>Downloads</div>
+        <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 8px; height: 8px; border-radius: 3px; background: #c7c7cc;"></div>Other</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pricing -->
+  <div style="padding: 60px 80px; display: flex; flex-direction: column; align-items: center; gap: 32px;">
+    <h2 class="display" style="font-size: 36px; font-weight: 700; letter-spacing: -0.5px; margin: 0;">One price. Forever.</h2>
+    <div style="display: flex; gap: 24px;">
+      <div style="width: 340px; border: 1px solid #ececf0; border-radius: 18px; padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+        <div style="font-size: 15px; font-weight: 700;">Free</div>
+        <div class="display" style="font-size: 40px; font-weight: 800;">$0</div>
+        <div style="display: flex; flex-direction: column; gap: 9px; font-size: 14px; color: #494949;">
+          <div>Unlimited full-disk scans</div>
+          <div>Complete System Data breakdown</div>
+          <div>Treemap &amp; category views</div>
+          <div>Reveal any file in Finder</div>
+        </div>
+        <div style="margin-top: auto; border: 1px solid #d2d2d7; border-radius: 10px; padding: 11px; text-align: center; font-size: 14px; font-weight: 600;">Download Free Scanner</div>
+      </div>
+      <div style="width: 340px; border: 2px solid #0071e3; border-radius: 18px; padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; position: relative;">
+        <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #0071e3; color: #ffffff; font-size: 11.5px; font-weight: 700; border-radius: 12px; padding: 4px 12px;">LIFETIME</div>
+        <div style="font-size: 15px; font-weight: 700;">Full version</div>
+        <div style="display: flex; align-items: baseline; gap: 8px;"><div class="display" style="font-size: 40px; font-weight: 800;">$9.99</div><div style="font-size: 14px; color: #6e6e73;">once, forever</div></div>
+        <div style="display: flex; flex-direction: column; gap: 9px; font-size: 14px; color: #494949;">
+          <div>Everything in Free</div>
+          <div>One-click safe cleaning</div>
+          <div>Trash-only deletion with undo</div>
+          <div>Free updates, no subscription</div>
+        </div>
+        <div style="margin-top: auto; background: #0071e3; color: #ffffff; border-radius: 10px; padding: 11px; text-align: center; font-size: 14px; font-weight: 600;">Get ClearDisk — $9.99</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div style="padding: 40px 80px 70px; display: flex; flex-direction: column; gap: 24px; max-width: 860px; align-self: center; box-sizing: border-box; width: 100%;">
+    <h2 class="display" style="font-size: 30px; font-weight: 700; letter-spacing: -0.4px; margin: 0;">Questions people actually ask</h2>
+    <div style="display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid #ececf0; padding-bottom: 18px;">
+      <div style="font-size: 16px; font-weight: 700;">What is System Data on Mac, exactly?</div>
+      <div style="font-size: 14.5px; color: #494949; line-height: 1.6;">It's macOS's catch-all bucket: app caches, logs, Time Machine snapshots, iPhone backups, temporary working files and leftovers from old apps. Apple shows you the total but not the contents — that's the part ClearDisk opens up.</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid #ececf0; padding-bottom: 18px;">
+      <div style="font-size: 16px; font-weight: 700;">Is it safe? I've heard cleaner apps break things.</div>
+      <div style="font-size: 14.5px; color: #494949; line-height: 1.6;">ClearDisk never permanently deletes anything — every removal goes to your Trash where you can undo it. System-critical files are locked out entirely, and items are labeled honestly: Safe, Review, or Leave it alone.</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid #ececf0; padding-bottom: 18px;">
+      <div style="font-size: 16px; font-weight: 700;">Why is my System Data 100+ GB?</div>
+      <div style="font-size: 14.5px; color: #494949; line-height: 1.6;">Usually a handful of big culprits: local Time Machine snapshots, forgotten iPhone backups, developer tools, or a runaway cache. Run the free scan — it tells you your exact answer in about a minute.</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 16px; font-weight: 700;">Does my data leave my Mac?</div>
+      <div style="font-size: 14.5px; color: #494949; line-height: 1.6;">Never. ClearDisk has no servers, no accounts, no analytics on your files. Everything happens on your Mac.</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="border-top: 1px solid #ececf0; padding: 28px 80px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #6e6e73;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <svg width="20" height="20" viewBox="0 0 88 88"><rect x="4" y="4" width="80" height="80" rx="20" fill="#0071e3"></rect><ellipse cx="44" cy="30" rx="22" ry="8" fill="none" stroke="#ffffff" stroke-width="5"></ellipse><path d="M22 30v22c0 4.4 9.8 8 22 8s22-3.6 22-8V30M22 41c0 4.4 9.8 8 22 8s22-3.6 22-8" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"></path></svg>
+      <div>© 2026 ClearDisk · cleardisk.app</div>
+    </div>
+    <div style="display: flex; gap: 22px;">
+      <div>What is System Data?</div>
+      <div>Free up space on Mac</div>
+      <div>Clear cache on Mac</div>
+      <div>[SUPPORT EMAIL]</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

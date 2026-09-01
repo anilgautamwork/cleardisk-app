@@ -1,0 +1,17 @@
+{
+  "artboards": [
+    { "file": "Onboarding.dc.html", "x": 0, "y": 0, "w": 1200, "h": 780, "title": "1 · First launch" },
+    { "file": "Main.dc.html", "x": 1300, "y": 0, "w": 1200, "h": 780, "title": "2 · System Data (hero)" },
+    { "file": "Categories.dc.html", "x": 2600, "y": 0, "w": 1200, "h": 780, "title": "3 · Categories" },
+    { "file": "Treemap.dc.html", "x": 3900, "y": 0, "w": 1200, "h": 780, "title": "4 · Treemap" },
+    { "file": "DeleteFlow.dc.html", "x": 5200, "y": 0, "w": 1200, "h": 780, "title": "5 · Clean confirmation" },
+    { "file": "Landing.dc.html", "x": 0, "y": 980, "w": 1440, "h": 3150, "title": "cleardisk.app landing" },
+    { "file": "AltFriendly.dc.html", "x": 1560, "y": 980, "w": 1200, "h": 780, "title": "Alt direction · Friendly" }
+  ],
+  "annotations": [
+    { "id": "app-flow", "x": 0, "y": -160, "w": 520, "text": "ClearDisk app screens, left to right: first launch and permission, then the System Data breakdown (the hero screen), categories, treemap, and the cleaning confirmation.\nDirection: Apple-native polish - trust-first for a non-technical audience." },
+    { "id": "landing-note", "x": 0, "y": 840, "w": 440, "text": "cleardisk.app landing page. Hero targets \"clear system data on mac\".\nTestimonial and support email are placeholders - fill after launch." },
+    { "id": "alt-note", "x": 1560, "y": 840, "w": 440, "text": "Alternate direction: a friendlier, warmer take on the main screen.\nPrefer this vibe? Say so and the whole set gets restyled." }
+  ],
+  "launch": { "view": "canvas" }
+}
