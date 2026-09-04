@@ -2,6 +2,22 @@
 
 Written 2026-09-05 when work was paused for handover. Everything a new developer needs: what the product is, what exists, what was decided, what is half-done, and how to continue. Read this first, then the spec, then the plans.
 
+## 0. SEO-first continuation — 2026-09-05 (supersedes status below)
+
+The owner made organic SEO the highest website priority and supplied a shared ChatGPT research conversation. Read the new [research and evidence assessment](seo/2026-09-05-research.md), [91-keyword candidate map](seo/keyword-map.csv), [SEO design](superpowers/specs/2026-09-05-cleardisk-seo-design.md), and [executable website-phase plan](superpowers/plans/2026-09-05-cleardisk-seo-foundation.md).
+
+**Scaffold review closed:** Plan 01 Task 1 was independently reviewed. One P2 was found: static assets could intercept browser-navigation requests under /api/*. Fixed with run_worker_first: ["/api/*"] and a failing-then-passing configuration regression test. Fix committed as **53af895** in the existing worktree. Review after fix approved Task 1. Tests: one configuration test plus two Worker tests; typecheck passes. Actual Wrangler requests verify health JSON 200, unknown API JSON 404, and unknown page HTML 404, both ordinary and navigation requests. The existing ignored ledger records this. **Next Worker task remains Plan 01 Task 2; Tasks 2–8 are not implemented.** No merge or worktree deletion performed.
+
+**Page ownership resolved:** Keep website/ as the single page source and preserve ThreeUI design. web/ remains the sole production /api/* owner. The first SEO phase adds a guide directory, five focused articles, metadata, structured data, sitemap/robots, and home positioning. Its private Sites preview remains noindex. Test-only checkout remains until the production Worker is ready.
+
+**Production architecture preserved:** one cleardisk.app Worker with generated static assets plus licensing API. Vinext static export needs its own integration gate; current server-side thanks query handling and test API routes must be replaced/excluded. Do not assume the Sites build can be copied unchanged into web/public. Do not switch to live Stripe keys before fulfillment.
+
+**Research correction:** the old keyword-cluster totals are estimates, not validated current data. The shared chat's 14K-US cache phrase is visible in Ahrefs' July 2025 snapshot, not current September 2026 evidence. The candidate CSV keeps other volumes blank. Google Ads competition measures advertisers, not organic difficulty. Numeric/model variants share one strong page; iCloud/RAM queries do not become unsupported ClearDisk features.
+
+**Website-phase result:** implemented and privately published at https://cleardisk-mac.anilgautam1180.chatgpt.site/guides (noindex). Website branch codex/seo-foundation, commits 221b308, 7630165, f65d6e9. Verification: 12 unit tests, typecheck, lint, build, and initial-HTML route checks; local production-mode sitemap/indexing also checked before restoring preview mode. Independent review had no blockers; minor date and snapshot-count copy observations fixed. No browser interaction QA was performed.
+
+**Remaining handover work:** finish Worker Tasks 2–8, native Plans 02–04, seven P2 guide topics, embedded checkout/recovery and single-Worker integration, verified 1.0 DMG, live fulfillment checks, then public indexing/Search Console. Stripe Tax remains undecided. Google Ads and the App Store release are deferred. The old sections below are the historical handover; these continuation decisions take precedence.
+
 ## 1. The product in one paragraph
 
 ClearDisk is a native macOS 15+ disk-space analyzer and cleaner (Swift 6 / SwiftUI, Swift Package, no Xcode project yet). Scanning is free forever; every removal action (Trash, Delete forever, Clean Safely, Empty Trash) unlocks with a **$10 one-time license** bought on **cleardisk.app** through Stripe. The marketing wedge is Apple's opaque **"System Data"** storage category: the hero screen opens it into plain-English rows labeled Safe / Review / Leave it. Deletion is Trash-first with Undo; permanent deletion only after an explicit "No, keep it"-default confirmation. The app never uploads anything; the only network call is license activation.
