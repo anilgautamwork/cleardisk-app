@@ -19,8 +19,7 @@ struct TreemapView: View {
     @State private var hovered: LaidOutNode?
     @State private var hoverPoint: CGPoint = .zero
     @State private var selected: LaidOutNode?
-    @State private var confirmTrash: LaidOutNode?
-    @State private var deleteRequest: DeleteForeverRequest?
+    @State private var removalRequest: RemovalRequest?
 
     private var current: FileNode? { stack.last ?? state.root }
     private var currentID: ObjectIdentifier? { current.map(ObjectIdentifier.init) }
@@ -129,28 +128,8 @@ struct TreemapView: View {
             layoutRequest = UUID()
             NSCursor.arrow.set()
         }
-        .confirmationDialog(
-            "Move \"\(confirmTrash?.node.name ?? "")\" (\(fmtBytes(confirmTrash?.node.size ?? 0))) to the Trash?",
-            isPresented: .init(get: { confirmTrash != nil },
-                               set: { if !$0 { confirmTrash = nil } })) {
-            Button("Move to Trash", role: .destructive) {
-                if let item = confirmTrash, let url = try? TrashService.trash(item.path) {
-                    let undo = [TrashService.TrashedItem(originalPath: item.path, trashURL: url)]
-                    state.applyRemoval(paths: [item.path], movedToTrash: true)
-                    state.showToast("Moved \(item.node.name) (\(fmtBytes(item.node.size))) to the Trash.",
-                                    undo: undo)
-                    selected = nil
-                }
-                confirmTrash = nil
-            }
-            Button("Cancel", role: .cancel) { confirmTrash = nil }
-        } message: {
-            Text("You can put it back from the Trash anytime.")
-        }
-        .sheet(item: $deleteRequest) { request in
-            DeleteForeverSheet(request: request) {
-                selected = nil
-            }
+        .sheet(item: $removalRequest) { request in
+            RemovalConfirmationSheet(request: request) { _ in selected = nil }
         }
     }
 
@@ -287,19 +266,19 @@ struct TreemapView: View {
             }
             Button("Reveal in Finder") { revealInFinder(item.path) }
                 .buttonStyle(.bordered)
-            Button("Move to Trash") { confirmTrash = item }
+            Button("Move to Trash") { removalRequest = .item(name: item.node.name, path: item.path, size: item.node.size) }
                 .buttonStyle(.bordered)
                 .disabled(!trashAllowed)
                 .help(trashAllowed ? "Moves to the Trash — undo available"
                       : "Protected location — ClearDisk won't remove this")
             Button("Delete Forever…") {
-                deleteRequest = DeleteForeverRequest(name: item.node.name, path: item.path,
+                removalRequest = .item(name: item.node.name, path: item.path,
                                                      size: item.node.size)
             }
             .buttonStyle(.bordered)
             .foregroundStyle(trashAllowed ? Color(hex: 0xFF3B30) : UI.textSecondary)
             .disabled(!trashAllowed)
-            .help(trashAllowed ? "Skips the Trash — frees space immediately, cannot be undone"
+            .help(trashAllowed ? "Skips the Trash — cannot be undone"
                   : "Protected location — ClearDisk won't remove this")
             Button {
                 selected = nil

@@ -8,8 +8,7 @@ struct BrowserView: View {
     @Environment(AppState.self) private var state
     @State private var stack: [FileNode] = []
     @State private var rows: [FileNode] = []
-    @State private var confirmTrash: FoundFile?
-    @State private var deleteRequest: DeleteForeverRequest?
+    @State private var removalRequest: RemovalRequest?
 
     private var current: FileNode? { stack.last }
 
@@ -66,24 +65,8 @@ struct BrowserView: View {
             validateStack()
             refreshRows()
         }
-        .confirmationDialog(
-            "Move \"\(confirmTrash?.name ?? "")\" (\(fmtBytes(confirmTrash?.size ?? 0))) to the Trash?",
-            isPresented: .init(get: { confirmTrash != nil },
-                               set: { if !$0 { confirmTrash = nil } })) {
-            Button("Move to Trash", role: .destructive) {
-                if let file = confirmTrash, let url = try? TrashService.trash(file.path) {
-                    state.applyRemoval(paths: [file.path], movedToTrash: true)
-                    state.showToast("Moved \(file.name) (\(fmtBytes(file.size))) to the Trash.",
-                                    undo: [TrashService.TrashedItem(originalPath: file.path, trashURL: url)])
-                }
-                confirmTrash = nil
-            }
-            Button("Cancel", role: .cancel) { confirmTrash = nil }
-        } message: {
-            Text("You can put it back from the Trash anytime.")
-        }
-        .sheet(item: $deleteRequest) { request in
-            DeleteForeverSheet(request: request) {}
+        .sheet(item: $removalRequest) { request in
+            RemovalConfirmationSheet(request: request) { _ in }
         }
     }
 
@@ -176,12 +159,11 @@ struct BrowserView: View {
                     .monospacedDigit()
                     .frame(width: 76, alignment: .trailing)
 
-                Button("Trash") { confirmTrash = FoundFile(name: child.name, path: childPath,
-                                                           size: child.size, isDirectory: child.isDirectory) }
+                Button("Trash") { removalRequest = .item(name: child.name, path: childPath, size: child.size) }
                     .buttonStyle(.link)
                     .font(.system(size: 12))
                     .disabled(!allowed)
-                Button("Delete…") { deleteRequest = DeleteForeverRequest(name: child.name,
+                Button("Delete…") { removalRequest = .item(name: child.name,
                                                                          path: childPath, size: child.size) }
                     .buttonStyle(.link)
                     .font(.system(size: 12))

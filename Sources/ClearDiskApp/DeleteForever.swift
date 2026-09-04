@@ -1,116 +1,170 @@
 import Core
 import SwiftUI
 
-struct DeleteForeverRequest: Identifiable {
+/// Immutable selection captured when the removal dialog opens.
+struct RemovalRequest: Identifiable {
+    struct Row: Identifiable {
+        let id: String
+        let name: String
+        let size: Int64
+    }
     let id = UUID()
-    let name: String
-    let path: String
-    let size: Int64
+    let rows: [Row]
+    let targets: [RemovalBatch.Target]
+    let confirmationText: String
+    var contentsOnly = false
+
+    static func item(name: String, path: String, size: Int64) -> Self {
+        Self(rows: [Row(id: path, name: name, size: size)],
+             targets: [.init(path: path)], confirmationText: name)
+    }
 }
 
 struct DestructiveButtonStyle: ButtonStyle {
     var enabled = true
-
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 13, weight: .semibold))
+            .font(.system(size: 14, weight: .semibold))
             .foregroundStyle(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(Color(hex: 0xFF3B30).opacity(!enabled ? 0.35 : configuration.isPressed ? 0.75 : 1),
+            .padding(.horizontal, 16).padding(.vertical, 10)
+            .background(Color(hex: 0xC53232).opacity(!enabled ? 0.4 : configuration.isPressed ? 0.8 : 1),
                         in: RoundedRectangle(cornerRadius: 10))
     }
 }
 
-/// Permanent deletion, gated hard: a warning stage, then type-the-exact-name
-/// to unlock the final button. No undo exists past this sheet.
-struct DeleteForeverSheet: View {
+/// Every cleanup entry point uses the same two choices. Permanent removal
+/// requires a deliberate choice and exact typed confirmation, never Return.
+struct RemovalConfirmationSheet: View {
     @Environment(AppState.self) private var state
     @Environment(\.dismiss) private var dismiss
-    let request: DeleteForeverRequest
-    var onDeleted: () -> Void
-
-    @State private var stage = 1
+    let request: RemovalRequest
+    var onRemoved: ([String]) -> Void = { _ in }
+    @State private var confirmingPermanent = false
     @State private var typed = ""
-    @State private var errorMessage: String?
+    @State private var working = false
+    @State private var outcome: RemovalBatch.Result?
+    @FocusState private var typing: Bool
 
-    private var nameMatches: Bool { typed == request.name }
+    private var matches: Bool { RemovalBatch.confirmationMatches(typed, expected: request.confirmationText) }
+    private var selectedBytes: Int64 { request.rows.reduce(0) { $0 + $1.size } }
 
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 30))
-                .foregroundStyle(Color(hex: 0xFF3B30))
-
-            Text(stage == 1 ? "Delete \"\(request.name)\" forever?" : "Type the name to confirm")
-                .font(.system(size: 17, weight: .bold))
-                .multilineTextAlignment(.center)
-
-            if stage == 1 {
-                VStack(spacing: 8) {
-                    Text("This skips the Trash entirely. \(fmtBytes(request.size)) will be freed immediately — and there is **no way to undo it**. Gone means gone.")
-                        .font(.system(size: 13))
-                        .foregroundStyle(UI.textSecondary)
-                        .multilineTextAlignment(.center)
+        VStack(alignment: .leading, spacing: 20) {
+            HStack(spacing: 13) {
+                Image(systemName: confirmingPermanent ? "exclamationmark.triangle.fill" : "trash")
+                    .font(.system(size: 25))
+                    .foregroundStyle(confirmingPermanent ? Color(hex: 0xFF7979) : UI.accentLight)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(confirmingPermanent ? "Confirm permanent removal" : "How would you like to remove these items?")
+                        .font(.system(size: 20, weight: .semibold))
                         .fixedSize(horizontal: false, vertical: true)
-                    Text("If you're not sure, use Move to Trash instead — it's reversible.")
-                        .font(.system(size: 12.5, weight: .medium))
-                        .foregroundStyle(UI.safeText)
-                }
-                HStack(spacing: 12) {
-                    Button("Cancel") { dismiss() }
-                        .keyboardShortcut(.cancelAction)
-                    Button("I understand, continue") { stage = 2 }
-                        .buttonStyle(DestructiveButtonStyle())
-                }
-            } else {
-                VStack(spacing: 10) {
-                    Text("To permanently delete it, type exactly:")
-                        .font(.system(size: 13))
-                        .foregroundStyle(UI.textSecondary)
-                    Text(request.name)
-                        .font(.system(size: 13, weight: .bold, design: .monospaced))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(UI.elevated, in: RoundedRectangle(cornerRadius: 6))
-                        .textSelection(.enabled)
-                    TextField("", text: $typed, prompt: Text(request.name).foregroundStyle(Color(hex: 0xC7C7CC)))
-                        .textFieldStyle(.plain)
-                        .font(.system(size: 13, design: .monospaced))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(UI.surface, in: RoundedRectangle(cornerRadius: 8))
-                        .overlay(RoundedRectangle(cornerRadius: 8)
-                            .stroke(nameMatches ? Color(hex: 0x34C759) : UI.cardBorder, lineWidth: 1.5))
-                        .frame(maxWidth: 320)
-                    if let errorMessage {
-                        Text(errorMessage)
-                            .font(.system(size: 12))
-                            .foregroundStyle(Color(hex: 0xFF3B30))
-                    }
-                }
-                HStack(spacing: 12) {
-                    Button("Cancel") { dismiss() }
-                        .keyboardShortcut(.cancelAction)
-                    Button("Delete Forever") { performDelete() }
-                        .buttonStyle(DestructiveButtonStyle(enabled: nameMatches))
-                        .disabled(!nameMatches)
+                    Text("\(request.rows.count) selected · \(fmtBytes(selectedBytes)) at last scan")
+                        .font(.system(size: 13)).foregroundStyle(UI.textSecondary)
                 }
             }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(request.rows) { row in
+                        HStack(alignment: .top, spacing: 16) {
+                            Text(row.name).font(.system(size: 14))
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: 10)
+                            Text(fmtBytes(row.size)).font(.system(size: 14, weight: .semibold))
+                                .monospacedDigit().fixedSize()
+                        }
+                    }
+                }.padding(16)
+            }.frame(maxHeight: 180).background(UI.elevated, in: RoundedRectangle(cornerRadius: 12))
+
+            VStack(alignment: .leading, spacing: 12) {
+                explanation("Move to Trash", "Undo is available while the items remain in Trash. Empty Trash later to reclaim space.", icon: "arrow.uturn.backward", color: UI.safeText)
+                explanation("Remove Permanently", "Skips the Trash. This cannot be undone.", icon: "exclamationmark.triangle", color: Color(hex: 0xFF7979))
+                if request.contentsOnly {
+                    Text("Only the contents of the selected groups are removed. Their container folders stay in place.")
+                        .font(.system(size: 13)).foregroundStyle(UI.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            if confirmingPermanent && outcome == nil {
+                VStack(alignment: .leading, spacing: 9) {
+                    Text("Type the following to confirm permanent removal:")
+                        .font(.system(size: 14)).foregroundStyle(UI.textSecondary)
+                    Text(request.confirmationText)
+                        .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                        .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                    TextField("Confirmation", text: $typed)
+                        .textFieldStyle(.roundedBorder).font(.system(size: 14))
+                        .focused($typing).disabled(working)
+                        .accessibilityLabel("Type \(request.confirmationText) to confirm permanent removal")
+                }
+            }
+            if working {
+                HStack(spacing: 10) { ProgressView().controlSize(.small); Text("Removing selected items…") }
+                    .font(.system(size: 14)).accessibilityElement(children: .combine)
+            }
+            if let outcome {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("\(outcome.removedPaths.count) removed. \(outcome.failures.count) could not be removed.")
+                        .font(.system(size: 14, weight: .semibold))
+                    ScrollView {
+                        Text(outcome.failures.joined(separator: "\n"))
+                            .font(.system(size: 13)).foregroundStyle(UI.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }.frame(maxHeight: 100)
+                }
+            }
+            HStack(spacing: 12) {
+                Button(outcome == nil ? "Cancel" : "Close") { dismiss() }
+                    .keyboardShortcut(.cancelAction).disabled(working)
+                Spacer(minLength: 0)
+                Button("Remove Permanently", role: .destructive) {
+                    if confirmingPermanent { perform(.permanently) }
+                    else { confirmingPermanent = true; typed = ""; typing = true }
+                }
+                .buttonStyle(DestructiveButtonStyle(enabled: !working && outcome == nil && (!confirmingPermanent || matches)))
+                .disabled(working || outcome != nil || (confirmingPermanent && !matches))
+                Button("Move to Trash") { perform(.trash) }
+                    .buttonStyle(PrimaryButtonStyle())
+                    .disabled(working || outcome != nil)
+            }
         }
-        .padding(28)
-        .frame(width: 430)
+        .padding(28).frame(width: 590)
+        .interactiveDismissDisabled(working)
     }
 
-    private func performDelete() {
-        do {
-            try TrashService.deleteForever(request.path)
-            state.applyRemoval(paths: [request.path], movedToTrash: false)
-            state.showToast("Deleted \(request.name) forever — \(fmtBytes(request.size)) freed immediately.")
-            onDeleted()
-            dismiss()
-        } catch {
-            errorMessage = error.localizedDescription
+    private func explanation(_ title: String, _ detail: String, icon: String, color: Color) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: icon).foregroundStyle(color).frame(width: 20).padding(.top, 2)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(.system(size: 14, weight: .semibold)).foregroundStyle(color)
+                Text(detail).font(.system(size: 14)).foregroundStyle(UI.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private func perform(_ method: RemovalBatch.Method) {
+        guard !working, outcome == nil, !request.targets.isEmpty else { return }
+        if method == .permanently { guard confirmingPermanent, matches else { return } }
+        working = true
+        let targets = request.targets
+        Task {
+            let result = await Task.detached(priority: .userInitiated) {
+                RemovalBatch.perform(targets: targets, method: method)
+            }.value
+            working = false
+            if !result.removedPaths.isEmpty {
+                state.applyRemoval(paths: result.removedPaths, movedToTrash: method == .trash)
+                onRemoved(result.removedPaths)
+                let message = method == .trash
+                    ? "Moved \(result.removedPaths.count) items to the Trash. Empty Trash later to reclaim space."
+                    : "Permanently removed \(result.removedPaths.count) items."
+                state.showToast(message, undo: method == .trash && !result.trashedItems.isEmpty ? result.trashedItems : nil)
+            }
+            if result.failures.isEmpty {
+                if result.removedPaths.isEmpty { state.showToast("No remaining items were found in this selection.") }
+                dismiss()
+            } else { outcome = result }
         }
     }
 }

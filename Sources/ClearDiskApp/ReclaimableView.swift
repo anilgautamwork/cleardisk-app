@@ -2,12 +2,12 @@ import Core
 import SwiftUI
 
 /// Dev-junk screen: rebuildable caches and build artifacts, whole-directory
-/// trashing with per-item checkboxes.
+/// removal with per-item checkboxes.
 struct ReclaimableView: View {
     @Environment(AppState.self) private var state
     @State private var selected: Set<String> = []
     @State private var initializedFor: Date?
-    @State private var confirming = false
+    @State private var removalRequest: RemovalRequest?
 
     private var items: [DevJunkItem] { state.devJunkItems }
 
@@ -45,7 +45,9 @@ struct ReclaimableView: View {
         }
         .onAppear(perform: seedSelection)
         .onChange(of: state.scanDate) { seedSelection() }
-        .sheet(isPresented: $confirming) { confirmSheet }
+        .sheet(item: $removalRequest) { request in
+            RemovalConfirmationSheet(request: request) { _ in selected.removeAll() }
+        }
     }
 
     private func seedSelection() {
@@ -117,12 +119,12 @@ struct ReclaimableView: View {
                 Text("Reclaim \(fmtBytes(selectedBytes))")
                     .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(UI.safeText)
-                Text("Whole folders move to the Trash — undo available right after.")
+                Text("Choose Move to Trash or Remove Permanently.")
                     .font(.system(size: 12))
                     .foregroundStyle(UI.textSecondary)
             }
             Spacer()
-            Button("Clean Selected") { confirming = true }
+            Button("Clean Selected") { prepareRemoval() }
                 .buttonStyle(PrimaryButtonStyle(compact: true))
                 .disabled(selectedItems.isEmpty)
                 .opacity(selectedItems.isEmpty ? 0.5 : 1)
@@ -133,61 +135,12 @@ struct ReclaimableView: View {
         .overlay(Rectangle().frame(height: 1).foregroundStyle(UI.cardBorder), alignment: .top)
     }
 
-    private var confirmSheet: some View {
-        VStack(spacing: 16) {
-            Text("Move \(selectedItems.count) folder\(selectedItems.count == 1 ? "" : "s") (\(fmtBytes(selectedBytes))) to the Trash?")
-                .font(.system(size: 17, weight: .bold))
-                .multilineTextAlignment(.center)
-            ScrollView {
-                VStack(alignment: .leading, spacing: 6) {
-                    ForEach(selectedItems) { item in
-                        HStack {
-                            Text(item.title).font(.system(size: 13))
-                            Spacer()
-                            Text(fmtBytes(item.bytes)).font(.system(size: 13, weight: .semibold))
-                        }
-                    }
-                }
-                .padding(.horizontal, 4)
-            }
-            .frame(maxHeight: 220)
-            Label("Everything goes to your Trash — Undo brings it straight back.",
-                  systemImage: "checkmark.shield")
-                .font(.system(size: 12.5))
-                .foregroundStyle(UI.safeText)
-            HStack {
-                Button("Cancel") { confirming = false }
-                    .keyboardShortcut(.cancelAction)
-                Button("Move to Trash") {
-                    confirming = false
-                    performClean()
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(UI.accent)
-                .keyboardShortcut(.defaultAction)
-            }
-        }
-        .padding(26)
-        .frame(width: 420)
-    }
-
-    private func performClean() {
-        var trashedItems: [TrashService.TrashedItem] = []
-        var failed = 0
-        for item in selectedItems {
-            do {
-                if let url = try TrashService.trash(item.path) {
-                    trashedItems.append(TrashService.TrashedItem(originalPath: item.path, trashURL: url))
-                }
-            } catch {
-                failed += 1
-            }
-        }
-        let cleanedBytes = selectedBytes
-        selected.removeAll()
-        state.applyRemoval(paths: trashedItems.map(\.originalPath), movedToTrash: true)
-        state.showToast("Moved \(trashedItems.count) folders (\(fmtBytes(cleanedBytes))) to the Trash."
-                        + (failed > 0 ? " \(failed) skipped." : ""),
-                        undo: trashedItems)
+    private func prepareRemoval() {
+        let items = selectedItems
+        guard !items.isEmpty else { return }
+        removalRequest = RemovalRequest(
+            rows: items.map { .init(id: $0.id, name: $0.title, size: $0.bytes) },
+            targets: items.map { .init(path: $0.path) },
+            confirmationText: items.count == 1 ? (items[0].path as NSString).lastPathComponent : "DELETE")
     }
 }

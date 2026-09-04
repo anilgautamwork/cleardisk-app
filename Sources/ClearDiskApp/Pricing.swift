@@ -1,5 +1,7 @@
-/// Shared display price for the planned direct-download 1.0 license.
-/// The preview does not implement checkout or license enforcement.
+import Foundation
+
+/// Checkout remains in test mode until 1.0 license activation is ready.
 enum Pricing {
     static let display = "$10"
+    static let purchaseURL = URL(string: "https://cleardisk.app/buy-now")!
 }

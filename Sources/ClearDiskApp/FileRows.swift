@@ -44,8 +44,7 @@ func collectEntries(root: FileNode, rootPath: String,
 struct FileRowsView: View {
     @Environment(AppState.self) private var state
     @Binding var files: [FoundFile]
-    @State private var confirmTrash: FoundFile?
-    @State private var deleteRequest: DeleteForeverRequest?
+    @State private var removalRequest: RemovalRequest?
 
     var body: some View {
         ScrollView {
@@ -57,27 +56,9 @@ struct FileRowsView: View {
             .padding(.horizontal, 24)
             .padding(.bottom, 20)
         }
-        .confirmationDialog(
-            "Move \"\(confirmTrash?.name ?? "")\" (\(fmtBytes(confirmTrash?.size ?? 0))) to the Trash?",
-            isPresented: .init(get: { confirmTrash != nil },
-                               set: { if !$0 { confirmTrash = nil } })) {
-            Button("Move to Trash", role: .destructive) {
-                if let file = confirmTrash,
-                   let url = try? TrashService.trash(file.path) {
-                    files.removeAll { $0.id == file.id }
-                    state.applyRemoval(paths: [file.path], movedToTrash: true)
-                    state.showToast("Moved \(file.name) (\(fmtBytes(file.size))) to the Trash.",
-                                    undo: [TrashService.TrashedItem(originalPath: file.path, trashURL: url)])
-                }
-                confirmTrash = nil
-            }
-            Button("Cancel", role: .cancel) { confirmTrash = nil }
-        } message: {
-            Text("You can put it back from the Trash anytime.")
-        }
-        .sheet(item: $deleteRequest) { request in
-            DeleteForeverSheet(request: request) {
-                files.removeAll { $0.path == request.path }
+        .sheet(item: $removalRequest) { request in
+            RemovalConfirmationSheet(request: request) { paths in
+                files.removeAll { paths.contains($0.path) }
             }
         }
     }
@@ -104,19 +85,19 @@ struct FileRowsView: View {
                 .buttonStyle(.link)
                 .font(.system(size: 12))
             let allowed = TrashService.verdict(forTrashing: file.path) == .allowed
-            Button("Trash") { confirmTrash = file }
+            Button("Trash") { removalRequest = .item(name: file.name, path: file.path, size: file.size) }
                 .buttonStyle(.link)
                 .font(.system(size: 12))
                 .disabled(!allowed)
                 .help(allowed ? "Moves to the Trash" : "Protected location — ClearDisk won't remove this")
             Button("Delete…") {
-                deleteRequest = DeleteForeverRequest(name: file.name, path: file.path, size: file.size)
+                removalRequest = .item(name: file.name, path: file.path, size: file.size)
             }
             .buttonStyle(.link)
             .font(.system(size: 12))
             .foregroundStyle(allowed ? Color(hex: 0xFF3B30) : UI.textSecondary)
             .disabled(!allowed)
-            .help(allowed ? "Delete forever — frees space immediately, cannot be undone"
+            .help(allowed ? "Remove permanently — cannot be undone"
                   : "Protected location — ClearDisk won't remove this")
         }
         .padding(.horizontal, 12)

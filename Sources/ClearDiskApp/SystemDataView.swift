@@ -2,12 +2,12 @@ import Core
 import SwiftUI
 
 /// The hero screen: System Data opened into explained rows with Safe / Review
-/// / Leave-it labels, and a trash-only Clean action for the safe ones.
+/// / Leave-it labels, and a choice of removal methods for the safe ones.
 struct SystemDataView: View {
     @Environment(AppState.self) private var state
     @State private var selected: Set<String> = []
     @State private var initialized = false
-    @State private var confirming = false
+    @State private var removalRequest: RemovalRequest?
 
     private var report: SystemDataReport? { state.report }
 
@@ -46,8 +46,8 @@ struct SystemDataView: View {
                 initialized = true
             }
         }
-        .sheet(isPresented: $confirming) {
-            confirmSheet
+        .sheet(item: $removalRequest) { request in
+            RemovalConfirmationSheet(request: request) { _ in selected.removeAll() }
         }
     }
 
@@ -164,12 +164,12 @@ struct SystemDataView: View {
                 Text("You can safely reclaim \(fmtBytes(selectedBytes))")
                     .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(UI.safeText)
-                Text("Files move to the Trash — you can always put them back.")
+                Text("Choose Move to Trash or Remove Permanently.")
                     .font(.system(size: 12))
                     .foregroundStyle(UI.textSecondary)
             }
             Spacer()
-            Button("Clean Safely — reclaim \(fmtBytes(selectedBytes))") { confirming = true }
+            Button("Review Cleanup — \(fmtBytes(selectedBytes))") { prepareRemoval() }
                 .buttonStyle(PrimaryButtonStyle(compact: true))
                 .disabled(selectedRows.isEmpty)
                 .opacity(selectedRows.isEmpty ? 0.5 : 1)
@@ -180,82 +180,16 @@ struct SystemDataView: View {
         .overlay(Rectangle().frame(height: 1).foregroundStyle(UI.cardBorder), alignment: .top)
     }
 
-    private var confirmSheet: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "trash")
-                .font(.system(size: 26))
-                .foregroundStyle(UI.accent)
-                .padding(14)
-                .background(UI.selectedRowBG, in: RoundedRectangle(cornerRadius: 14))
-
-            Text("Move \(selectedRows.count) group\(selectedRows.count == 1 ? "" : "s") to the Trash?")
-                .font(.system(size: 17, weight: .bold))
-
-            VStack(spacing: 0) {
-                ForEach(selectedRows) { row in
-                    HStack {
-                        Text(row.title).font(.system(size: 13))
-                        Spacer()
-                        Text(row.bytes.map(fmtBytes) ?? "—")
-                            .font(.system(size: 13, weight: .semibold))
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 9)
-                    if row.id != selectedRows.last?.id {
-                        Divider()
-                    }
+    private func prepareRemoval() {
+        let rows = selectedRows
+        guard !rows.isEmpty else { return }
+        removalRequest = RemovalRequest(
+            rows: rows.map { .init(id: $0.id, name: $0.title, size: $0.bytes ?? 0) },
+            targets: rows.flatMap { row in
+                row.cleanRoots.map {
+                    .init(path: $0, contentsOnly: true, excludingChildNames: row.cleanExcludingNames)
                 }
-                Divider()
-                HStack {
-                    Text("Total to reclaim").font(.system(size: 13, weight: .bold))
-                    Spacer()
-                    Text(fmtBytes(selectedBytes))
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(UI.safeText)
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(UI.canvas)
-            }
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(UI.cardBorder))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-
-            Label("Nothing is permanently deleted. Everything goes to your Trash.",
-                  systemImage: "checkmark.shield")
-                .font(.system(size: 12.5))
-                .foregroundStyle(UI.safeText)
-
-            HStack {
-                Button("Cancel") { confirming = false }
-                    .keyboardShortcut(.cancelAction)
-                Button("Move to Trash") {
-                    confirming = false
-                    performClean()
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(UI.accent)
-                .keyboardShortcut(.defaultAction)
-            }
-        }
-        .padding(26)
-        .frame(width: 440)
-    }
-
-    private func performClean() {
-        var trashedItems: [TrashService.TrashedItem] = []
-        var failed = 0
-        for row in selectedRows {
-            for root in row.cleanRoots {
-                let result = TrashService.trashContents(of: root)
-                trashedItems.append(contentsOf: result.trashed)
-                failed += result.failed
-            }
-        }
-        let reclaimed = selectedBytes
-        state.applyRemoval(paths: trashedItems.map(\.originalPath), movedToTrash: true)
-        state.showToast("Moved \(trashedItems.count) items (\(fmtBytes(reclaimed))) to the Trash."
-                        + (failed > 0 ? " \(failed) skipped (in use or protected)." : "")
-                        + " Empty the Trash to finish freeing the space.",
-                        undo: trashedItems)
+            },
+            confirmationText: "DELETE", contentsOnly: true)
     }
 }

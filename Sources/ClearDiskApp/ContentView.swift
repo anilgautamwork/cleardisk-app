@@ -207,6 +207,17 @@ struct SidebarView: View {
                 Text("1.0 cleanup license: \(Pricing.display) once at launch. This preview has no license activation.")
                     .font(.system(size: 11.5))
                     .foregroundStyle(UI.textSecondary)
+                Link(destination: Pricing.purchaseURL) {
+                    Label("Buy for \(Pricing.display)", systemImage: "arrow.up.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 5)
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.top, 6)
+                Text("Test checkout · no real charge")
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(UI.textSecondary)
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
