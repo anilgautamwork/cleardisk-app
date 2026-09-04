@@ -14,12 +14,12 @@ if grep -rn '\.removeItem(' Sources/ | grep -v 'Sources/Core/TrashService.swift'
   exit 1
 fi
 
-swift build -c release
+swift build -c release --arch arm64 --arch x86_64
 
 APP=dist/ClearDisk.app
 rm -rf dist
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp .build/release/ClearDiskApp "$APP/Contents/MacOS/ClearDisk"
+cp .build/apple/Products/Release/ClearDiskApp "$APP/Contents/MacOS/ClearDisk"
 cp Scripts/Info.plist "$APP/Contents/Info.plist"
 
 if [ ! -f Scripts/AppIcon.icns ]; then
@@ -40,7 +40,8 @@ if [ -z "$IDENTITY" ]; then
   IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Development" | head -1 | sed 's/.*"\(.*\)"/\1/')
 fi
 if [ -n "$IDENTITY" ]; then
-  codesign --force --options runtime --sign "$IDENTITY" "$APP"
+  # --timestamp is required for notarization.
+  codesign --force --options runtime --timestamp --sign "$IDENTITY" "$APP"
   echo "signed with: $IDENTITY"
 else
   codesign --force --sign - "$APP"
