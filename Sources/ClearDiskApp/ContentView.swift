@@ -11,6 +11,8 @@ struct ContentView: View {
             Divider().overlay(UI.cardBorder)
             Group {
                 switch state.phase {
+                case .diskAccess:
+                    DiskAccessView()
                 case .welcome:
                     WelcomeView()
                 case .scanning:
@@ -41,9 +43,6 @@ struct ContentView: View {
             ToastView()
                 .animation(reduceMotion ? nil : .spring(duration: 0.3), value: state.toast?.id)
         }
-        .sheet(isPresented: Bindable(state).fdaSheetPresented) {
-            FDASheetView()
-        }
         .task {
             if !FullDiskAccess.isBundledApp {
                 NSApp.applicationIconImage = AppIcon.image
@@ -69,7 +68,7 @@ struct SidebarNavRow: View {
                 Text(section.rawValue)
                 Spacer(minLength: 0)
             }
-            .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+            .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
@@ -125,7 +124,7 @@ struct SidebarView: View {
                     .font(.system(size: 10.5)).foregroundStyle(UI.textSecondary)
             }.padding(15).card()
 
-            Text("WORKSPACE").font(.system(size: 10, weight: .semibold)).tracking(1.2)
+            Text("Workspace").font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(UI.textSecondary).padding(.leading, 10).padding(.top, 6)
 
             // Navigation
@@ -149,10 +148,10 @@ struct SidebarView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("\((state.stats?.skippedCount ?? 0).formatted()) items couldn't be read")
                         .font(.system(size: 12, weight: .semibold))
-                    Text("Grant Full Disk Access to see everything.")
+                    Text("Review disk access to include more locations.")
                         .font(.system(size: 11.5))
                         .foregroundStyle(UI.textSecondary)
-                    Button("Grant access") { state.fdaSheetPresented = true }
+                    Button("Grant access") { state.showDiskAccess() }
                         .buttonStyle(.link)
                         .tint(UI.accentLight)
                         .foregroundStyle(UI.accentLight)

@@ -100,7 +100,7 @@ struct PrimaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: compact ? 13 : 14, weight: .semibold))
+            .font(.system(size: compact ? 14 : 15, weight: .semibold))
             .foregroundStyle(.white)
             .padding(.horizontal, compact ? 16 : 22)
             .padding(.vertical, compact ? 8 : 11)
@@ -131,7 +131,7 @@ struct ScreenHeader: View {
                 .font(.system(size: 27, weight: .bold))
                 .tracking(-0.3)
             Text(subtitle)
-                .font(.system(size: 13.5))
+                .font(.system(size: 14))
                 .foregroundStyle(UI.textSecondary)
         }
         .padding(.horizontal, 28)

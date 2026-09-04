@@ -23,6 +23,7 @@ struct ClearDiskApp: App {
 final class AppState {
     enum Phase {
         case welcome
+        case diskAccess
         case scanning
         case done
     }
@@ -121,7 +122,7 @@ final class AppState {
 
     var toast: Toast?
     var devJunkItems: [DevJunkItem] = []
-    var fdaSheetPresented = false
+    var diskAccessConfirmed = false
     /// Absolute path the Browse section should open at.
     var browsePath: String?
 
@@ -133,7 +134,7 @@ final class AppState {
 
     /// True when the last scan hit locked folders and FDA isn't granted.
     var showFDAHint: Bool {
-        phase == .done && (stats?.skippedCount ?? 0) > 50 && !FullDiskAccess.isGranted
+        phase == .done && (stats?.skippedCount ?? 0) > 50 && !FullDiskAccess.isConfirmed
     }
 
     func showToast(_ message: String, undo: [TrashService.TrashedItem]? = nil) {
@@ -177,7 +178,23 @@ final class AppState {
         }
     }
 
+    func showDiskAccess() {
+        diskAccessConfirmed = false
+        phase = .diskAccess
+    }
+
+    func leaveDiskAccess() {
+        phase = root == nil ? .welcome : .done
+    }
+
     func startScan(path: String) {
+        // Gate full-disk work here, so welcome, rescan, and choosing "/" in
+        // the folder picker cannot enter the scanner before access is checked.
+        let decision = ScanAccessPolicy.decision(path: path, diskAccessConfirmed: FullDiskAccess.isConfirmed)
+        guard case .scan(let path) = decision else {
+            showDiskAccess()
+            return
+        }
         scanTask?.cancel()
         scanRequest = UUID()
         scanStage = "Reading files"
