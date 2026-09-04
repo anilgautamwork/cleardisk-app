@@ -53,6 +53,7 @@ struct DiskAccessView: View {
     @Environment(\.scenePhase) private var scenePhase
     private var confirmed: Bool { state.diskAccessConfirmed }
     @State private var hasChecked = false
+    @State private var relaunching = false
 
     var body: some View {
         ScrollView {
@@ -75,7 +76,7 @@ struct DiskAccessView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     step(1, "Open System Settings", detail: "Go to Privacy & Security → Full Disk Access.")
                     step(2, "Turn on ClearDisk", detail: "If ClearDisk isn’t listed, click + and select it from Applications.")
-                    step(3, "Come back to ClearDisk", detail: "Then click Scan my disk below. If access isn’t detected, relaunch ClearDisk and try again.")
+                    step(3, "Come back to ClearDisk", detail: "Once access is detected, choose Scan my disk. If needed, click Check access or relaunch ClearDisk.")
                 }.padding(24).frame(maxWidth: .infinity, alignment: .leading).card()
 
                 HStack(spacing: 12) {
@@ -91,9 +92,13 @@ struct DiskAccessView: View {
                             .buttonStyle(.bordered)
                     }
                     if FullDiskAccess.isBundledApp && !confirmed {
-                        Button("Relaunch ClearDisk") {
-                            FullDiskAccess.relaunch { state.showToast($0) }
-                        }.buttonStyle(.bordered)
+                        Button(relaunching ? "Relaunching…" : "Relaunch ClearDisk") {
+                            relaunching = true
+                            FullDiskAccess.relaunch {
+                                relaunching = false
+                                state.showToast($0)
+                            }
+                        }.buttonStyle(.bordered).disabled(relaunching)
                     }
                 }.controlSize(.large).font(.system(size: 14))
 
