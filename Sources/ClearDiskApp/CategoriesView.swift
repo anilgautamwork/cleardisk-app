@@ -74,7 +74,7 @@ struct CategoriesView: View {
                 if let action {
                     Text(action.label)
                         .font(.system(size: 12.5, weight: .semibold))
-                        .foregroundStyle(UI.accent)
+                        .foregroundStyle(UI.accentLight)
                 }
             }
             .frame(maxWidth: .infinity, minHeight: 128, alignment: .topLeading)

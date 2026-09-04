@@ -39,7 +39,7 @@ struct ContentView: View {
         .foregroundStyle(UI.textPrimary)
         .overlay(alignment: .bottom) {
             ToastView()
-                .animation(.spring(duration: 0.3), value: state.toast?.id)
+                .animation(reduceMotion ? nil : .spring(duration: 0.3), value: state.toast?.id)
         }
         .sheet(isPresented: Bindable(state).fdaSheetPresented) {
             FDASheetView()
@@ -154,6 +154,8 @@ struct SidebarView: View {
                         .foregroundStyle(UI.textSecondary)
                     Button("Grant access") { state.fdaSheetPresented = true }
                         .buttonStyle(.link)
+                        .tint(UI.accentLight)
+                        .foregroundStyle(UI.accentLight)
                         .font(.system(size: 12, weight: .semibold))
                 }
                 .padding(12)
@@ -174,6 +176,8 @@ struct SidebarView: View {
                         NSWorkspace.shared.open(URL(fileURLWithPath: NSHomeDirectory() + "/.Trash"))
                     }
                     .buttonStyle(.link)
+                    .tint(UI.accentLight)
+                    .foregroundStyle(UI.accentLight)
                     .font(.system(size: 12, weight: .semibold))
                 }
                 .padding(12)
