@@ -373,18 +373,18 @@ struct TreemapView: View {
         let labelVisible: Bool
     }
 
-    /// Nine distinct, friendly hues assigned by size rank — adjacent blocks
-    /// always contrast. No grays: every block should feel alive.
+    /// Jewel tones assigned by size rank. Parent and nested variants keep
+    /// white labels readable, including the lighter hover treatment.
     private static let palette: [(h: Double, s: Double, b: Double)] = [
-        (0.585, 0.72, 0.88), // blue
-        (0.075, 0.66, 0.94), // orange
-        (0.78, 0.52, 0.84),  // purple
-        (0.40, 0.58, 0.74),  // green
-        (0.92, 0.50, 0.90),  // pink
-        (0.52, 0.58, 0.82),  // teal
-        (0.115, 0.58, 0.84), // gold
-        (0.67, 0.48, 0.84),  // indigo
-        (0.015, 0.55, 0.87), // coral
+        (0.72, 0.55, 0.54), // violet
+        (0.48, 0.70, 0.38), // teal
+        (0.095, 0.77, 0.45), // amber
+        (0.90, 0.53, 0.51), // mauve
+        (0.60, 0.63, 0.53), // slate blue
+        (0.39, 0.64, 0.39), // forest
+        (0.035, 0.67, 0.51), // terracotta
+        (0.66, 0.50, 0.55), // indigo
+        (0.82, 0.45, 0.48), // orchid
     ]
 
     private func hitTest(_ point: CGPoint) -> LaidOutNode? {
@@ -449,7 +449,7 @@ struct TreemapView: View {
                     let hsb = Self.palette[tile.paletteIndex % Self.palette.count]
                     let color = tile.depth == 0
                         ? Color(hue: hsb.h, saturation: hsb.s, brightness: hsb.b)
-                        : Color(hue: hsb.h, saturation: hsb.s * (0.74 - Double(tile.tintIndex % 3) * 0.07), brightness: min(0.97, hsb.b * 1.07))
+                        : Color(hue: hsb.h, saturation: hsb.s * (0.94 - Double(tile.tintIndex % 3) * 0.05), brightness: hsb.b * (0.90 + Double(tile.tintIndex % 3) * 0.03))
                     return LaidOutNode(node: node, path: path, rect: tile.rect, color: color, depth: tile.depth,
                                       labelVisible: tile.rect.width > (tile.depth == 0 ? 64 : 68) && tile.rect.height > (tile.depth == 0 ? 22 : 26))
                 }
