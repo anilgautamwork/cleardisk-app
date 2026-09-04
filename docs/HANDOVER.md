@@ -1,5 +1,13 @@
 # ClearDisk — Developer Handover
 
+## Download dashboard and SEO expansion — latest continuation
+
+The website now includes 17 guides (12 newly researched articles), a grouped storage hub and a 20-URL sitemap at https://cleardisk.app/sitemap.xml. All 24 public HTML routes passed rendered SEO checks. New source research, 45-keyword mapping and a 30-day marketing plan are in the separate website repository under `docs/seo/2026-09-05-growth-research.md` and `docs/seo/growth-keywords.csv`. Monthly search volumes are unverified; Search Console access was not available. No social posts, emails or paid ads were launched.
+
+The private download graph is https://cleardisk.app/analytics. Username is `owner`; password is generated locally in ignored `website/.env.analytics-owner` and stored in Cloudflare encrypted secrets. See website `docs/ANALYTICS.md`. It counts successful full DMG requests per UTC day with source labels; it does not measure installs, unique people or completed transfers. GitHub downloads are reported separately. No tracking cookies, IPs, raw referrers or individual visitor records are persisted by the counter. Website counting starts with this deployment. First read: 0 website requests, 1 GitHub download. Testing was excluded from production counts.
+
+Worker deployment: `2d83a170-2791-4a82-89c9-242ae0c3650d`, same personal account and cleardisk.app domain. SQLite daily counters expire after 366 days. Sixteen website unit tests, typecheck/lint, runtime auth/concurrent-count checks and live deployment verification passed. Native app/DMG0.1.4 unchanged. Stripe remains test-only; Talivia remains paused.
+
 ## Public Worker deployment and 0.1.4 preview — 5 September 2026 (latest status)
 
 The owner confirmed **cleardisk.app** (not diskclear.app), personal Cloudflare account `anil personal` (`449c51af2c638c0c3c88493d6175228b`). The site is deployed as Worker `cleardisk-website` on its custom domain. Initial deployment version: `4e26c98a-ed7b-4f0b-89ba-cab7a8dfd0ca`; the Stripe test secret was subsequently added through Wrangler encrypted secrets. Never commit `.dev.vars` or credentials.
