@@ -153,7 +153,7 @@ struct ToastView: View {
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 12)
-            .background(.white, in: RoundedRectangle(cornerRadius: 12))
+            .background(UI.surface, in: RoundedRectangle(cornerRadius: 12))
             .overlay(RoundedRectangle(cornerRadius: 12).stroke(UI.cardBorder))
             .shadow(color: .black.opacity(0.12), radius: 14, y: 4)
             .padding(.bottom, 18)

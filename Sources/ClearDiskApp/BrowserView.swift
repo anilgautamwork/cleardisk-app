@@ -122,7 +122,7 @@ struct BrowserView: View {
                                     .fixedSize()
                                     .padding(.horizontal, 10)
                                     .padding(.vertical, 4)
-                                    .background(Color(hex: 0xF0F0F2), in: RoundedRectangle(cornerRadius: 6))
+                                    .background(UI.elevated, in: RoundedRectangle(cornerRadius: 6))
                             }
                             .buttonStyle(.plain)
                             .id(index)
@@ -164,7 +164,7 @@ struct BrowserView: View {
                 // Share-of-biggest bar: instantly shows what dominates here.
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
-                        Capsule().fill(Color(hex: 0xEEEEF2))
+                        Capsule().fill(UI.elevated)
                         Capsule().fill(UI.accent.opacity(0.75))
                             .frame(width: max(3, geo.size.width * CGFloat(child.size) / CGFloat(max(1, biggest))))
                     }

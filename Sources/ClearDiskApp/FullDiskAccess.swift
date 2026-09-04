@@ -25,6 +25,7 @@ enum FullDiskAccess {
     }
 
     /// FDA applies to freshly launched processes — relaunch after granting.
+    @MainActor
     static func relaunch() {
         let path = Bundle.main.bundlePath
         guard path.hasSuffix(".app") else { return }
@@ -116,7 +117,7 @@ struct FDASheetView: View {
         HStack(alignment: .top, spacing: 12) {
             Text("\(n)")
                 .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(UI.accent)
+                .foregroundStyle(UI.accentLight)
                 .frame(width: 22, height: 22)
                 .background(UI.selectedRowBG, in: Circle())
             Text(.init(text))

@@ -105,7 +105,7 @@ struct ReclaimableView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(isSelected && trashable ? UI.selectedRowBG : Color.white,
+        .background(isSelected && trashable ? UI.selectedRowBG : UI.surface,
                     in: RoundedRectangle(cornerRadius: 10))
         .overlay(RoundedRectangle(cornerRadius: 10)
             .stroke(isSelected && trashable ? UI.selectedRowBorder : UI.cardBorder))
@@ -129,7 +129,7 @@ struct ReclaimableView: View {
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 14)
-        .background(Color(hex: 0xFBFBFD))
+        .background(UI.canvas)
         .overlay(Rectangle().frame(height: 1).foregroundStyle(UI.cardBorder), alignment: .top)
     }
 

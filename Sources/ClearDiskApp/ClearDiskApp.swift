@@ -10,6 +10,7 @@ struct ClearDiskApp: App {
             ContentView()
                 .environment(state)
                 .tint(UI.accent)
+                .preferredColorScheme(.dark)
                 .frame(minWidth: 1100, minHeight: 720)
         }
         .windowResizability(.contentSize)
@@ -60,6 +61,9 @@ final class AppState {
     var stats: ScanStats?
     var report: SystemDataReport?
     var categoryTotals: [CategoryTotal] = []
+    var scanStage = "Reading files"
+    private var scanRequest = UUID()
+    private var scanTask: Task<Void, Never>?
     var progressFiles = 0
     var progressBytes: Int64 = 0
     var scanDate: Date?
@@ -174,6 +178,9 @@ final class AppState {
     }
 
     func startScan(path: String) {
+        scanTask?.cancel()
+        scanRequest = UUID()
+        scanStage = "Reading files"
         scanPath = path
         isHomeScan = (path == NSHomeDirectory())
         phase = .scanning
@@ -183,57 +190,64 @@ final class AppState {
     }
 
     private func runScan(path: String, started: Date) {
-        Task.detached(priority: .userInitiated) { [weak self, path] in
+        let request = scanRequest
+        let homePath = NSHomeDirectory()
+        scanTask = Task.detached(priority: .userInitiated) { [weak self, path] in
             let progress: @Sendable (Int, Int64) -> Void = { files, bytes in
                 Task { @MainActor in
-                    guard let self else { return }
-                    self.progressFiles = files
-                    self.progressBytes = bytes
+                    guard let self, self.scanRequest == request, self.scanStage == "Reading files" else { return }
+                    self.progressFiles = max(self.progressFiles, files)
+                    self.progressBytes = max(self.progressBytes, bytes)
                 }
             }
-            let result = try? ParallelScan.scan(path: path, onProgress: progress)
+            guard let result = try? ParallelScan.scan(path: path, onProgress: progress), !Task.isCancelled else {
+                await MainActor.run { [weak self] in
+                    guard let self, self.scanRequest == request else { return }
+                    self.phase = .welcome
+                    self.showToast("This location couldn’t be read. Choose another folder or check access.")
+                }
+                return
+            }
+            await MainActor.run { [weak self] in
+                guard let self, self.scanRequest == request else { return }
+                self.scanStage = "Organizing your storage"
+                self.progressFiles = result.stats.fileCount
+                self.progressBytes = result.stats.totalBytes
+            }
+            // The result has not been published to AppState yet. This worker
+            // exclusively owns the tree while the recursive reports are built.
+            let home: FileNode?
+            if path == homePath { home = result.root }
+            else if path == "/" || homePath.hasPrefix(path + "/") {
+                let relative = path == "/" ? String(homePath.dropFirst()) : String(homePath.dropFirst(path.count + 1))
+                var node: FileNode? = result.root
+                for component in relative.split(separator: "/") { node = node?.child(String(component)) }
+                home = node
+            } else { home = nil }
+            let report = home.map { SystemDataScan.build(homeRoot: $0, homePath: homePath) }
+            let categories = home.map { Categorizer.homeTotals(root: $0) } ?? []
+            guard !Task.isCancelled else { return }
+            let junk = DevJunkScan.find(root: result.root, scanPath: path, homeRoot: home, homePath: homePath)
+            guard !Task.isCancelled else { return }
             let elapsed = Date().timeIntervalSince(started)
-            Task { @MainActor in
-                guard let self else { return }
-                self.finishScan(result: result, elapsed: elapsed)
+            await MainActor.run { [weak self] in
+                guard let self, self.scanRequest == request else { return }
+                self.finishScan(result: result, home: home, report: report, categories: categories, junk: junk, elapsed: elapsed)
             }
         }
     }
 
-    private func finishScan(result: ParallelScan.Result?, elapsed: Double) {
-        guard let result else {
-            phase = .welcome
-            return
-        }
+    private func finishScan(result: ParallelScan.Result, home: FileNode?, report: SystemDataReport?, categories: [CategoryTotal], junk: [DevJunkItem], elapsed: Double) {
         root = result.root
         stats = result.stats
         scanDate = Date()
         scanSeconds = elapsed
-
-        // Locate the home subtree: the scan root itself, or /Users/<name>
-        // inside a broader scan.
-        let homePath = NSHomeDirectory()
-        if isHomeScan {
-            homeNode = result.root
-        } else if homePath.hasPrefix(scanPath) {
-            let relative = scanPath == "/" ? String(homePath.dropFirst())
-                : String(homePath.dropFirst(scanPath.count + 1))
-            var node: FileNode? = result.root
-            for component in relative.split(separator: "/") {
-                node = node?.child(String(component))
-            }
-            homeNode = node
-        } else {
-            homeNode = nil
-        }
-
-        if homeNode == nil {
-            report = nil
-            categoryTotals = []
-        }
-        section = homeNode != nil ? .systemData : .treemap
+        homeNode = home
+        self.report = report
+        categoryTotals = categories
+        devJunkItems = junk
+        section = home != nil ? .systemData : .treemap
         pendingUndoNodes = []
-        rebuildDerived()
         treeVersion += 1
         refreshVolumeInfo()
         phase = .done

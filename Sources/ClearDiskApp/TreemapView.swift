@@ -6,6 +6,13 @@ import SwiftUI
 /// Single click = select · double click = look inside · Back / ⌘↑ = up.
 struct TreemapView: View {
     @Environment(AppState.self) private var state
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isLayingOut = true
+    @State private var layoutRequest = UUID()
+    @State private var layoutTask: Task<Void, Never>?
+    @State private var snapshotKey: String?
+    @State private var snapshotEntries: [TreemapLayout.Entry] = []
+    @State private var snapshotNodes: [Int: (FileNode, String)] = [:]
     @State private var stack: [FileNode] = []
     @State private var laidOut: [LaidOutNode] = []
     @State private var canvasSize: CGSize = .zero
@@ -20,6 +27,7 @@ struct TreemapView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            ScreenHeader(title: "Your storage, mapped", subtitle: "Bigger blocks use more space. Explore the largest 60 items in each folder.")
             toolbar
 
             GeometryReader { geo in
@@ -30,7 +38,26 @@ struct TreemapView: View {
                         }
                     }
 
-                    if let selected {
+                    if isLayingOut {
+                        StorageMapArtwork(active: true)
+                            .overlay {
+                                VStack(spacing: 10) {
+                                    if reduceMotion { Image(systemName: "hourglass").foregroundStyle(UI.accentLight) }
+                                    else { ProgressView().controlSize(.small) }
+                                    Text("Arranging your storage map")
+                                        .font(.system(size: 15, weight: .semibold))
+                                    Text("Calculating blocks for this folder…")
+                                        .font(.system(size: 12)).foregroundStyle(UI.textSecondary)
+                                }
+                                .padding(24).card()
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .allowsHitTesting(false)
+                    } else if laidOut.isEmpty {
+                        ContentUnavailableView("No measurable files", systemImage: "square.dashed", description: Text("This folder is empty, unreadable, or contains only zero-size files."))
+                    }
+
+                    if let selected, !isLayingOut {
                         Path(roundedRect: selected.rect, cornerRadius: selected.depth == 0 ? 8 : 4)
                             .stroke(UI.accent, lineWidth: 3)
                             .allowsHitTesting(false)
@@ -48,7 +75,7 @@ struct TreemapView: View {
                     }
                 }
                 .id(currentID)
-                .animation(.easeInOut(duration: 0.18), value: currentID)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: currentID)
                 .onChange(of: geo.size, initial: true) {
                     canvasSize = geo.size
                     relayout()
@@ -96,6 +123,11 @@ struct TreemapView: View {
             if let selected {
                 detailBar(for: selected)
             }
+        }
+        .onDisappear {
+            layoutTask?.cancel()
+            layoutRequest = UUID()
+            NSCursor.arrow.set()
         }
         .confirmationDialog(
             "Move \"\(confirmTrash?.node.name ?? "")\" (\(fmtBytes(confirmTrash?.node.size ?? 0))) to the Trash?",
@@ -155,7 +187,7 @@ struct TreemapView: View {
                 }
                 .onChange(of: stack.count) {
                     if !stack.isEmpty {
-                        withAnimation { proxy.scrollTo(stack.count - 1, anchor: .trailing) }
+                        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { proxy.scrollTo(stack.count - 1, anchor: .trailing) }
                     }
                 }
             }
@@ -180,7 +212,7 @@ struct TreemapView: View {
                 .fixedSize()
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
-                .background(Color(hex: 0xF0F0F2), in: RoundedRectangle(cornerRadius: 6))
+                .background(UI.elevated, in: RoundedRectangle(cornerRadius: 6))
         }
         .buttonStyle(.plain)
     }
@@ -277,6 +309,7 @@ struct TreemapView: View {
                     .foregroundStyle(UI.textSecondary)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Close file details")
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -322,7 +355,7 @@ struct TreemapView: View {
         }
         .padding(.horizontal, 11)
         .padding(.vertical, 7)
-        .background(.white, in: RoundedRectangle(cornerRadius: 8))
+        .background(UI.surface, in: RoundedRectangle(cornerRadius: 8))
         .shadow(color: .black.opacity(0.16), radius: 8, y: 3)
         .offset(x: min(hoverPoint.x + 14, size.width - 180),
                 y: min(hoverPoint.y + 14, max(0, size.height - 56)))
@@ -359,58 +392,76 @@ struct TreemapView: View {
     }
 
     private func relayout() {
+        layoutTask?.cancel()
+        let request = UUID()
+        layoutRequest = request
+        hovered = nil
+        laidOut = []
         guard let current, canvasSize.width > 10, canvasSize.height > 10 else {
-            laidOut = []
+            isLayingOut = false
             return
         }
-        var result: [LaidOutNode] = []
-        let frame = CGRect(origin: .zero, size: canvasSize)
+        isLayingOut = true
+        let size = canvasSize
+        // A stable snapshot is reused during resize. Mutable FileNodes remain
+        // on the main actor, only small value records enter the detached task.
         let base = state.scanPath == "/" ? "" : state.scanPath
         let currentPath = base + stack.map { "/" + $0.name }.joined()
-
-        let children = (current.children ?? [])
-            .filter { $0.size > 0 }
-            .sorted { $0.size > $1.size }
-            .prefix(60)
-        let level1 = Squarify.layout(sizes: children.map { Double($0.size) }, in: frame)
-
-        for item in level1 {
-            let child = children[children.startIndex + item.index]
-            let rect = item.rect.insetBy(dx: 2, dy: 2)
-            guard rect.width > 3, rect.height > 3 else { continue }
-
-            let hsb = Self.palette[item.index % Self.palette.count]
-            let color = Color(hue: hsb.h, saturation: hsb.s, brightness: hsb.b)
-            let childPath = currentPath + "/" + child.name
-            let canNest = child.isDirectory && !Self.isBundle(child.name)
-                && rect.width > 110 && rect.height > 76
-            result.append(LaidOutNode(node: child, path: childPath, rect: rect, color: color,
-                                      depth: 0, labelVisible: rect.width > 64 && rect.height > 22))
-
-            guard canNest else { continue }
-            let inner = CGRect(x: rect.minX + 4, y: rect.minY + 40,
-                               width: rect.width - 8, height: rect.height - 44)
-            let grandchildren = (child.children ?? [])
-                .filter { $0.size > 0 }
-                .sorted { $0.size > $1.size }
-                .prefix(24)
-            guard !grandchildren.isEmpty else { continue }
-            let level2 = Squarify.layout(sizes: grandchildren.map { Double($0.size) }, in: inner)
-            for sub in level2 {
-                let subRect = sub.rect.insetBy(dx: 1.5, dy: 1.5)
-                guard subRect.width > 6, subRect.height > 6 else { continue }
-                let grandchild = grandchildren[grandchildren.startIndex + sub.index]
-                // Medium tints of the parent hue — light enough to read as
-                // "inside", saturated enough for white labels.
-                let tint = Color(hue: hsb.h,
-                                 saturation: hsb.s * (0.74 - Double(sub.index % 3) * 0.07),
-                                 brightness: min(0.97, hsb.b * 1.07))
-                result.append(LaidOutNode(node: grandchild, path: childPath + "/" + grandchild.name,
-                                          rect: subRect, color: tint, depth: 1,
-                                          labelVisible: subRect.width > 68 && subRect.height > 26))
+        let version = state.treeVersion
+        let key = "\(version):\(currentPath)"
+        layoutTask = Task { @MainActor in
+            // Coalesce resize bursts and let SwiftUI present loading feedback.
+            do { try await Task.sleep(for: .milliseconds(35)) } catch { return }
+            guard layoutRequest == request else { return }
+            if snapshotKey != key {
+                var nodes: [Int: (FileNode, String)] = [:]
+                var nextID = 0
+                var entries: [TreemapLayout.Entry] = []
+                for child in current.largestChildren(limit: 60) {
+                    let id = nextID; nextID += 1
+                    let path = currentPath + "/" + child.name
+                    nodes[id] = (child, path)
+                    var children: [TreemapLayout.Entry] = []
+                    if child.isDirectory && !Self.isBundle(child.name) {
+                        for grandchild in child.largestChildren(limit: 24) {
+                            let subID = nextID; nextID += 1
+                            nodes[subID] = (grandchild, path + "/" + grandchild.name)
+                            children.append(.init(id: subID, size: grandchild.size))
+                        }
+                    }
+                    entries.append(.init(id: id, size: child.size, children: children))
+                }
+                snapshotNodes = nodes
+                snapshotEntries = entries
+                snapshotKey = key
+            }
+            let entries = snapshotEntries
+            let worker = Task.detached(priority: .userInitiated) {
+                try TreemapLayout.layout(entries: entries, in: CGRect(origin: .zero, size: size))
+            }
+            do {
+                let tiles = try await withTaskCancellationHandler {
+                    try await worker.value
+                } onCancel: { worker.cancel() }
+                guard !Task.isCancelled, layoutRequest == request, state.treeVersion == version else { return }
+                laidOut = tiles.compactMap { tile in
+                    guard let (node, path) = snapshotNodes[tile.id] else { return nil }
+                    let hsb = Self.palette[tile.paletteIndex % Self.palette.count]
+                    let color = tile.depth == 0
+                        ? Color(hue: hsb.h, saturation: hsb.s, brightness: hsb.b)
+                        : Color(hue: hsb.h, saturation: hsb.s * (0.74 - Double(tile.tintIndex % 3) * 0.07), brightness: min(0.97, hsb.b * 1.07))
+                    return LaidOutNode(node: node, path: path, rect: tile.rect, color: color, depth: tile.depth,
+                                      labelVisible: tile.rect.width > (tile.depth == 0 ? 64 : 68) && tile.rect.height > (tile.depth == 0 ? 22 : 26))
+                }
+                if let selectedPath = selected?.path {
+                    selected = laidOut.first { $0.path == selectedPath }
+                }
+                isLayingOut = false
+            } catch {
+                guard layoutRequest == request else { return }
+                isLayingOut = false
             }
         }
-        laidOut = result
     }
 
     /// Packages the UI treats as leaves — falling into an app bundle's guts

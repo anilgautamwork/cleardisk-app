@@ -1,21 +1,25 @@
 import Core
 import SwiftUI
 
-/// ClearDisk brand palette for the current light appearance.
+/// Graphite surfaces and accessible semantic colors shared by every screen.
 enum UI {
-    static let accent = Color(hex: 0x7150C5)
-    static let textPrimary = Color(hex: 0x1D1D1F)
-    static let textSecondary = Color(hex: 0x6E6E73)
-    static let sidebar = Color(hex: 0xF5F5F7)
-    static let cardBorder = Color(hex: 0xE8E8ED)
-    static let safeText = Color(hex: 0x1D7A3E)
-    static let safeBG = Color(hex: 0xE5F6EC)
-    static let reviewText = Color(hex: 0xB25E09)
-    static let reviewBG = Color(hex: 0xFFF4E5)
-    static let leaveText = Color(hex: 0x6E6E73)
-    static let leaveBG = Color(hex: 0xF0F0F2)
-    static let selectedRowBG = Color(hex: 0xF4EFFF)
-    static let selectedRowBorder = Color(hex: 0xDDD0F6)
+    static let accent = Color(hex: 0x8155D9)
+    static let accentLight = Color(hex: 0xBBA1FF)
+    static let textPrimary = Color(hex: 0xF1F1F5)
+    static let textSecondary = Color(hex: 0xA6A6B5)
+    static let canvas = Color(hex: 0x111115)
+    static let sidebar = Color(hex: 0x17171D)
+    static let surface = Color(hex: 0x1D1D25)
+    static let elevated = Color(hex: 0x252530)
+    static let cardBorder = Color(hex: 0x343440)
+    static let safeText = Color(hex: 0x7CE3AE)
+    static let safeBG = Color(hex: 0x19372D)
+    static let reviewText = Color(hex: 0xF6C478)
+    static let reviewBG = Color(hex: 0x3A2E20)
+    static let leaveText = Color(hex: 0xB6B6C4)
+    static let leaveBG = Color(hex: 0x2A2A34)
+    static let selectedRowBG = Color(hex: 0x302441)
+    static let selectedRowBorder = Color(hex: 0x684994)
 
     static func color(for category: Core.Category) -> Color {
         switch category {
@@ -107,13 +111,12 @@ struct PrimaryButtonStyle: ButtonStyle {
 }
 
 extension View {
-    /// White card with hairline border and soft shadow — the design's base
-    /// surface.
+    /// Elevated graphite card with a quiet hairline border.
     func card(radius: CGFloat = 12) -> some View {
         self
-            .background(.white, in: RoundedRectangle(cornerRadius: radius))
+            .background(UI.surface, in: RoundedRectangle(cornerRadius: radius))
             .overlay(RoundedRectangle(cornerRadius: radius).stroke(UI.cardBorder))
-            .shadow(color: .black.opacity(0.045), radius: 5, y: 1)
+
     }
 }
 
@@ -151,7 +154,7 @@ func fileIcon(name: String, isDirectory: Bool) -> (symbol: String, color: Color)
         return ("music.note", Color(hex: 0xFF2D55))
     case "zip", "tar", "gz", "7z", "rar", "xz":
         return ("archivebox.fill", Color(hex: 0xA2845E))
-    case "dmg", "iso", "img", "raw":
+    case "dmg", "iso", "img":
         return ("opticaldiscdrive.fill", Color(hex: 0x8E8E93))
     case "safetensors", "gguf", "ckpt", "pt", "onnx", "mlmodel", "bin":
         return ("cpu.fill", Color(hex: 0x5E5CE6))
@@ -233,7 +236,7 @@ struct HoverRow<Content: View>: View {
 
     var body: some View {
         content
-            .background(hovering ? UI.selectedRowBG : .white,
+            .background(hovering ? UI.selectedRowBG : UI.surface,
                         in: RoundedRectangle(cornerRadius: 10))
             .overlay(RoundedRectangle(cornerRadius: 10)
                 .stroke(hovering ? UI.selectedRowBorder : UI.cardBorder))

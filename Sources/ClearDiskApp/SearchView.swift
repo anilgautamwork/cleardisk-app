@@ -21,7 +21,7 @@ struct SearchView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 9)
-                .background(.white, in: RoundedRectangle(cornerRadius: 10))
+                .background(UI.surface, in: RoundedRectangle(cornerRadius: 10))
                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(UI.cardBorder))
                 .frame(maxWidth: 520)
                 if !query.isEmpty {

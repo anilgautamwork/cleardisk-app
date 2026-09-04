@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppState.self) private var state
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 0) {
@@ -30,10 +31,11 @@ struct ContentView: View {
                     .transition(.opacity)
                 }
             }
-            .animation(.easeOut(duration: 0.16), value: state.section)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: state.section)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(hex: 0xFBFBFD))
+            .background(UI.canvas)
         }
+        .transaction { if reduceMotion { $0.animation = nil } }
         .foregroundStyle(UI.textPrimary)
         .overlay(alignment: .bottom) {
             ToastView()
@@ -72,7 +74,7 @@ struct SidebarNavRow: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
             .background(isSelected ? UI.selectedRowBorder
-                        : hovering && isAvailable ? Color(hex: 0xE9E9EE) : .clear,
+                        : hovering && isAvailable ? UI.elevated : .clear,
                         in: RoundedRectangle(cornerRadius: 8))
             .contentShape(RoundedRectangle(cornerRadius: 8))
         }
@@ -93,7 +95,7 @@ struct SidebarView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 8) {
                 Image(nsImage: AppIcon.image)
                     .resizable()
@@ -103,35 +105,28 @@ struct SidebarView: View {
             }
             .padding(.top, 30)
 
-            // Storage summary card
-            VStack(spacing: 10) {
-                ZStack {
-                    Circle().stroke(UI.cardBorder, lineWidth: 10)
-                    Circle()
-                        .trim(from: 0, to: usedFraction)
-                        .stroke(UI.accent, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                        .rotationEffect(.degrees(-90))
-                    VStack(spacing: 0) {
-                        Text("\(Int(usedFraction * 100))%")
-                            .font(.system(size: 17, weight: .bold))
-                        Text("full")
-                            .font(.system(size: 9))
-                            .foregroundStyle(UI.textSecondary)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Image(systemName: "internaldrive").foregroundStyle(UI.accentLight)
+                    Text("Macintosh HD").font(.system(size: 12.5, weight: .semibold))
+                    Spacer()
+                }
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(fmtBytes(state.volumeFree)).font(.system(size: 25, weight: .semibold)).tracking(-0.7)
+                    Text("free").font(.system(size: 11)).foregroundStyle(UI.textSecondary)
+                }
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(UI.elevated)
+                        Capsule().fill(UI.accent).frame(width: geo.size.width * min(1, max(0, usedFraction)))
                     }
-                }
-                .frame(width: 96, height: 96)
+                }.frame(height: 5)
+                Text("\(Int(usedFraction * 100))% used · \(fmtBytes(state.volumeTotal)) total")
+                    .font(.system(size: 10.5)).foregroundStyle(UI.textSecondary)
+            }.padding(15).card()
 
-                VStack(spacing: 2) {
-                    Text("\(fmtBytes(state.volumeTotal - state.volumeFree)) used of \(fmtBytes(state.volumeTotal))")
-                        .font(.system(size: 12.5, weight: .semibold))
-                    Text("\(fmtBytes(state.volumeFree)) free")
-                        .font(.system(size: 12))
-                        .foregroundStyle(UI.textSecondary)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(16)
-            .card()
+            Text("WORKSPACE").font(.system(size: 10, weight: .semibold)).tracking(1.2)
+                .foregroundStyle(UI.textSecondary).padding(.leading, 10).padding(.top, 6)
 
             // Navigation
             VStack(alignment: .leading, spacing: 2) {
@@ -163,7 +158,7 @@ struct SidebarView: View {
                 }
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.white, in: RoundedRectangle(cornerRadius: 10))
+                .background(UI.surface, in: RoundedRectangle(cornerRadius: 10))
                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(UI.cardBorder))
             }
 
@@ -212,11 +207,11 @@ struct SidebarView: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.white, in: RoundedRectangle(cornerRadius: 10))
+            .background(UI.surface, in: RoundedRectangle(cornerRadius: 10))
             .overlay(RoundedRectangle(cornerRadius: 10).stroke(UI.cardBorder))
         }
         .padding(14)
-        .frame(width: 248)
+        .frame(width: 220)
         .background(UI.sidebar)
     }
 }

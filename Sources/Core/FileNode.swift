@@ -1,8 +1,10 @@
 import Foundation
 
 /// One entry in the scanned tree. For directories, `size` is the subtree total.
-/// @unchecked Sendable: mutated only while a scan builds it (single writer per
-/// node); immutable once the scan returns and the tree crosses to the UI.
+/// @unchecked Sendable: single writer per node during scan construction.
+/// After exclusive worker-side report preparation, ownership passes to the
+/// main actor, where deletion/undo may mutate the tree. Background UI work
+/// must use immutable value snapshots, never retain this live tree.
 public final class FileNode: @unchecked Sendable {
     public let name: String
     public let isDirectory: Bool
