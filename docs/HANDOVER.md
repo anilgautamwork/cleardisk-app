@@ -1,5 +1,29 @@
 # ClearDisk — Developer Handover
 
+## Public Worker deployment and 0.1.4 preview — 5 September 2026 (latest status)
+
+The owner confirmed **cleardisk.app** (not diskclear.app), personal Cloudflare account `anil personal` (`449c51af2c638c0c3c88493d6175228b`). The site is deployed as Worker `cleardisk-website` on its custom domain. Initial deployment version: `4e26c98a-ed7b-4f0b-89ba-cab7a8dfd0ca`; the Stripe test secret was subsequently added through Wrangler encrypted secrets. Never commit `.dev.vars` or credentials.
+
+Repositories supplied by the owner and pushed to `main` using the configured `github-agw` SSH identity:
+- App: https://github.com/anilgautamwork/cleardisk-app
+- Website (separate repository): https://github.com/anilgautamwork/cleardisk-website
+- Signed/notarized preview release: https://github.com/anilgautamwork/cleardisk-app/releases/tag/v0.1.4
+- Direct download: https://cleardisk.app/ClearDisk.dmg
+
+ClearDisk **0.1.4, build 5**, macOS 15+, universal arm64/x86_64. DMG: **3,010,640 bytes**; SHA-256 `019b5f104a4ccb3c33c1840033299b90fea7338dcd5bdbc60b3655654cef9ac6`. Both app and DMG are Developer ID signed, Apple-notarized and stapled; Gatekeeper accepts the DMG. Downloaded GitHub and Cloudflare assets match this exact hash.
+
+Every removal entry point now uses a shared choice sheet: Cancel, Move to Trash, red Remove Permanently. Permanent deletion requires exact typed confirmation; Trash remains available in that stage. Batch work runs off the main thread, applies only successful removals, preserves container roots, deduplicates paths and checks protections. App-cache selection excludes unchecked browser caches. Undo only restores successful paths and retains retryable failures. Core coverage: 42 tests pass; debug and universal release builds pass; final independent source review found no blocker. Sidebar Buy for $10 link and test-mode disclosure verified in native accessibility state. No user files were removed during UI verification.
+
+**TEST checkout is explicitly authorized for this launch.** https://cleardisk.app/buy-now is linked in the website header/hero and native sidebar. The deployed API returned HTTP 200 and a verified Stripe `cs_test_` checkout URL. No real charge or license is issued. Native activation and production license fulfillment remain unfinished; do not replace the test secret with a live key to bypass this. Existing checkout deliberately rejects live keys. Talivia remains paused.
+
+Production build uses `npm run build:cloudflare` (`DEPLOY_TARGET=cloudflare SITE_INDEXABLE=true`) then `npx wrangler deploy --config dist/server/wrangler.json`. `npm run deploy:cloudflare` combines these. The default Sites build retains its separate plugin and noindex behavior. Cloudflare compatibility date is `2026-05-22`, the newest accepted by this website's installed workerd binary (the Claude Worker scaffold uses a separate toolchain). Production origin, canonicals and sitemap use cleardisk.app. Worker preview URLs and workers.dev are disabled.
+
+Validation: website typecheck, lint, 12 unit tests; compiled and public HTTPS checks for 12 HTML routes, five complete guide pages, unique metadata/H1s, Article/Breadcrumb schema, internal links, real 404, robots, sitemap and DMG. Public DNS resolvers resolve the new domain; this Mac initially cached NXDOMAIN, so public HTTP verification used the DNS-returned Cloudflare IP with normal HTTPS hostname/certificate validation. No TLS verification was disabled. Search Console verification/submission and ranking performance remain unverified.
+
+GitHub tag workflow `.github/workflows/publish-dmg.yml` downloads the exact website commit's binary, verifies recorded size/SHA-256, and publishes the preview release with checksum using the repository-scoped Actions token. Run `33925460240` succeeded. Release manifest and notes are in `releases/`. Build/sign/notarize locally with `./Scripts/release-direct.sh`; the workflow never receives Apple signing credentials.
+
+Future full licensing work must address issues found in the original plans: strip the CLDK prefix before character normalization; validate the paid ClearDisk product/price before fulfillment; use atomic activation/revocation storage; retry failed license-email delivery; recheck licensing when resuming a pending removal. Claude's isolated `web/` scaffold remains separate and unmodified by this release.
+
 Written 2026-09-05 when work was paused for handover. Everything a new developer needs: what the product is, what exists, what was decided, what is half-done, and how to continue. Read this first, then the spec, then the plans.
 
 ## Brand preview continuation — 2026-09-05
