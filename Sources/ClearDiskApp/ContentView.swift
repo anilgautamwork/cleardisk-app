@@ -71,7 +71,7 @@ struct SidebarNavRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
-            .background(isSelected ? Color(hex: 0xDCDCE1)
+            .background(isSelected ? UI.selectedRowBorder
                         : hovering && isAvailable ? Color(hex: 0xE9E9EE) : .clear,
                         in: RoundedRectangle(cornerRadius: 8))
             .contentShape(RoundedRectangle(cornerRadius: 8))
@@ -206,7 +206,7 @@ struct SidebarView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Scanning is free, forever")
                     .font(.system(size: 12, weight: .semibold))
-                Text("Cleaning unlocks with a one-time $9.99 purchase. No subscription.")
+                Text("1.0 cleanup license: \(Pricing.display) once at launch. This preview has no license activation.")
                     .font(.system(size: 11.5))
                     .foregroundStyle(UI.textSecondary)
             }

@@ -63,6 +63,10 @@ struct WelcomeView: View {
                 .buttonStyle(.bordered)
             }
 
+            Text("Preview \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "development") · Help shape ClearDisk")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(UI.textSecondary)
+
             HStack(spacing: 6) {
                 Image(systemName: "lock")
                     .font(.system(size: 11))

@@ -9,6 +9,7 @@ struct ClearDiskApp: App {
         WindowGroup("ClearDisk") {
             ContentView()
                 .environment(state)
+                .tint(UI.accent)
                 .frame(minWidth: 1100, minHeight: 720)
         }
         .windowResizability(.contentSize)

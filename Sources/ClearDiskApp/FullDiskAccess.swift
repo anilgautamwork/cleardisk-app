@@ -118,7 +118,7 @@ struct FDASheetView: View {
                 .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(UI.accent)
                 .frame(width: 22, height: 22)
-                .background(Color(hex: 0xEEF4FF), in: Circle())
+                .background(UI.selectedRowBG, in: Circle())
             Text(.init(text))
                 .font(.system(size: 13))
         }

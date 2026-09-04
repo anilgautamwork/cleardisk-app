@@ -2,6 +2,16 @@
 
 Written 2026-09-05 when work was paused for handover. Everything a new developer needs: what the product is, what exists, what was decided, what is half-done, and how to continue. Read this first, then the spec, then the plans.
 
+## Brand preview continuation — 2026-09-05
+
+Branding corrections are complete on branch `codex/brand-preview`: native violet C/sparkle icon matches the website, one renderer supplies runtime and packaged icons, light-mode accents/selection fills are violet, and the sidebar uses the shared planned $10 price. Website header and hero share one lavender Download ClearDisk control. Palette/usage: `website/docs/BRANDING.md`.
+
+Fresh artifact: `dist/ClearDisk.dmg`, ClearDisk **0.1.1 preview, build 2**, macOS 15+, Intel and Apple silicon, 2,787,215 bytes. SHA-256: `c018a7284dca81640d84d3c9af5809d166968a39009e133acaad956ec24c6396`. App and DMG are signed, Apple-notarized and stapled; Gatekeeper accepts the installer. The website serves the identical binary. Previous generated distribution was preserved at `/tmp/cleardisk-before-brand-preview`.
+
+Validation: 17 Swift tests, 12 website tests, typecheck, lint, build, 12-route SEO HTTP checks, matching header/hero labels/classes, served DMG hash, native welcome-screen visual/accessibility inspection, and website header/hero visual inspection. Independent final review found no blockers. Website source `db2c620413185dd49518bb504d1b23edd538bbfd` is privately published as Sites version 4 at https://cleardisk-mac.anilgautam1180.chatgpt.site (noindex).
+
+**This is not the completed 1.0 release.** Worker Tasks 2–8, native Plans 02–04 (licensing/removal, dark appearance, two-pass scanning), production checkout/recovery and public launch remain pending as below. Plan 02 must reuse the new `Sources/ClearDiskApp/Pricing.swift` enum rather than redeclare it. The preview explicitly has no license activation.
+
 ## 0. SEO-first continuation — 2026-09-05 (supersedes status below)
 
 The owner made organic SEO the highest website priority and supplied a shared ChatGPT research conversation. Read the new [research and evidence assessment](seo/2026-09-05-research.md), [91-keyword candidate map](seo/keyword-map.csv), [SEO design](superpowers/specs/2026-09-05-cleardisk-seo-design.md), and [executable website-phase plan](superpowers/plans/2026-09-05-cleardisk-seo-foundation.md).

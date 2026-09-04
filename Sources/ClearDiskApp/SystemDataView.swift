@@ -186,7 +186,7 @@ struct SystemDataView: View {
                 .font(.system(size: 26))
                 .foregroundStyle(UI.accent)
                 .padding(14)
-                .background(Color(hex: 0xEEF4FF), in: RoundedRectangle(cornerRadius: 14))
+                .background(UI.selectedRowBG, in: RoundedRectangle(cornerRadius: 14))
 
             Text("Move \(selectedRows.count) group\(selectedRows.count == 1 ? "" : "s") to the Trash?")
                 .font(.system(size: 17, weight: .bold))

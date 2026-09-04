@@ -1,9 +1,9 @@
 import Core
 import SwiftUI
 
-/// Palette lifted from the approved design canvas (Apple-native direction).
+/// ClearDisk brand palette for the current light appearance.
 enum UI {
-    static let accent = Color(hex: 0x0071E3)
+    static let accent = Color(hex: 0x7150C5)
     static let textPrimary = Color(hex: 0x1D1D1F)
     static let textSecondary = Color(hex: 0x6E6E73)
     static let sidebar = Color(hex: 0xF5F5F7)
@@ -14,8 +14,8 @@ enum UI {
     static let reviewBG = Color(hex: 0xFFF4E5)
     static let leaveText = Color(hex: 0x6E6E73)
     static let leaveBG = Color(hex: 0xF0F0F2)
-    static let selectedRowBG = Color(hex: 0xF0F7FF)
-    static let selectedRowBorder = Color(hex: 0xCFE5FF)
+    static let selectedRowBG = Color(hex: 0xF4EFFF)
+    static let selectedRowBorder = Color(hex: 0xDDD0F6)
 
     static func color(for category: Core.Category) -> Color {
         switch category {
@@ -90,7 +90,7 @@ func revealInFinder(_ path: String) {
     NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: path)])
 }
 
-/// The design canvas's blue CTA: 10pt radius, weighty label, subtle press.
+/// ClearDisk's violet CTA: 10pt radius, weighty label, subtle press.
 struct PrimaryButtonStyle: ButtonStyle {
     var compact = false
 
@@ -233,7 +233,7 @@ struct HoverRow<Content: View>: View {
 
     var body: some View {
         content
-            .background(hovering ? Color(hex: 0xF4F8FE) : .white,
+            .background(hovering ? UI.selectedRowBG : .white,
                         in: RoundedRectangle(cornerRadius: 10))
             .overlay(RoundedRectangle(cornerRadius: 10)
                 .stroke(hovering ? UI.selectedRowBorder : UI.cardBorder))

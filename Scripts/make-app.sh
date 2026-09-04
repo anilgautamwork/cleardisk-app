@@ -22,17 +22,17 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp .build/apple/Products/Release/ClearDiskApp "$APP/Contents/MacOS/ClearDisk"
 cp Scripts/Info.plist "$APP/Contents/Info.plist"
 
-if [ ! -f Scripts/AppIcon.icns ]; then
-  swift Scripts/render-icon.swift /tmp/cleardisk_icon_1024.png
-  ICONSET=/tmp/ClearDisk.iconset
-  rm -rf "$ICONSET" && mkdir "$ICONSET"
-  for s in 16 32 128 256 512; do
-    sips -z $s $s /tmp/cleardisk_icon_1024.png --out "$ICONSET/icon_${s}x${s}.png" >/dev/null
-    d=$((s * 2))
-    sips -z $d $d /tmp/cleardisk_icon_1024.png --out "$ICONSET/icon_${s}x${s}@2x.png" >/dev/null
-  done
-  iconutil -c icns "$ICONSET" -o Scripts/AppIcon.icns
-fi
+# Regenerate from the shared app drawing; a stale icns must not keep an old brand.
+swiftc Sources/ClearDiskApp/AppIcon.swift Scripts/render-icon.swift -o /tmp/cleardisk-render-icon
+/tmp/cleardisk-render-icon /tmp/cleardisk_icon_1024.png
+ICONSET=/tmp/ClearDisk.iconset
+rm -rf "$ICONSET" && mkdir "$ICONSET"
+for s in 16 32 128 256 512; do
+  sips -z $s $s /tmp/cleardisk_icon_1024.png --out "$ICONSET/icon_${s}x${s}.png" >/dev/null
+  d=$((s * 2))
+  sips -z $d $d /tmp/cleardisk_icon_1024.png --out "$ICONSET/icon_${s}x${s}@2x.png" >/dev/null
+done
+iconutil -c icns "$ICONSET" -o Scripts/AppIcon.icns
 cp Scripts/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 
 IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)"/\1/')

@@ -1,67 +1,47 @@
 import AppKit
 
-/// Programmatic Dock icon matching the design canvas (blue rounded square,
-/// white disk cylinder, sparkle). A real .icns asset comes with the Xcode
-/// bundle at distribution time.
+/// ClearDisk's violet C and sparkle. Shared by the running app and the
+/// distribution icon renderer so the welcome screen, Dock and DMG agree.
 enum AppIcon {
-    static let image: NSImage = {
-        NSImage(size: NSSize(width: 512, height: 512), flipped: false) { rect in
-            let blue = NSColor(red: 0, green: 0.443, blue: 0.89, alpha: 1)
-            let bg = NSBezierPath(roundedRect: rect.insetBy(dx: 24, dy: 24),
-                                  xRadius: 116, yRadius: 116)
-            blue.setFill()
-            bg.fill()
+    static let image = makeImage(size: 512)
 
+    static func makeImage(size: CGFloat) -> NSImage {
+        NSImage(size: NSSize(width: size, height: size), flipped: true) { _ in
+            let transform = NSAffineTransform()
+            transform.scale(by: size / 512)
+            transform.concat()
+
+            let tile = NSBezierPath(
+                roundedRect: NSRect(x: 24, y: 24, width: 464, height: 464),
+                xRadius: 116, yRadius: 116)
+            let light = NSColor(srgbRed: 199 / 255, green: 183 / 255, blue: 1, alpha: 1)
+            let deep = NSColor(srgbRed: 121 / 255, green: 96 / 255, blue: 206 / 255, alpha: 1)
+            NSGradient(starting: light, ending: deep)!.draw(in: tile, angle: 45)
+
+            let markTransform = NSAffineTransform()
+            markTransform.translateX(by: 56, yBy: 56)
+            markTransform.scale(by: 10)
+            markTransform.concat()
+
+            let ring = NSBezierPath()
+            ring.appendArc(withCenter: NSPoint(x: 20, y: 20), radius: 13,
+                           startAngle: -52, endAngle: 38, clockwise: true)
+            ring.lineWidth = 5.5
+            ring.lineCapStyle = .round
             NSColor.white.setStroke()
-            let stroke: CGFloat = 22
+            ring.stroke()
 
-            // Disk cylinder: top ellipse, sides, two belly arcs.
-            let topRect = NSRect(x: 130, y: 306, width: 252, height: 96)
-            let top = NSBezierPath(ovalIn: topRect)
-            top.lineWidth = stroke
-            top.stroke()
-
-            let sides = NSBezierPath()
-            sides.move(to: NSPoint(x: 130, y: 354))
-            sides.line(to: NSPoint(x: 130, y: 170))
-            sides.move(to: NSPoint(x: 382, y: 354))
-            sides.line(to: NSPoint(x: 382, y: 170))
-            sides.lineWidth = stroke
-            sides.lineCapStyle = .round
-            sides.stroke()
-
-            for bottomY in [230.0, 170.0] {
-                let belly = NSBezierPath()
-                belly.move(to: NSPoint(x: 130, y: bottomY))
-                belly.curve(to: NSPoint(x: 382, y: bottomY),
-                            controlPoint1: NSPoint(x: 170, y: bottomY - 52),
-                            controlPoint2: NSPoint(x: 342, y: bottomY - 52))
-                belly.lineWidth = stroke
-                belly.lineCapStyle = .round
-                belly.stroke()
-            }
-
-            // Sparkle, bottom right.
             let sparkle = NSBezierPath()
-            let cx = 400.0, cy = 118.0, r = 46.0, inner = 13.0
-            sparkle.move(to: NSPoint(x: cx, y: cy + r))
-            sparkle.curve(to: NSPoint(x: cx + r, y: cy),
-                          controlPoint1: NSPoint(x: cx + inner, y: cy + inner),
-                          controlPoint2: NSPoint(x: cx + inner, y: cy + inner))
-            sparkle.curve(to: NSPoint(x: cx, y: cy - r),
-                          controlPoint1: NSPoint(x: cx + inner, y: cy - inner),
-                          controlPoint2: NSPoint(x: cx + inner, y: cy - inner))
-            sparkle.curve(to: NSPoint(x: cx - r, y: cy),
-                          controlPoint1: NSPoint(x: cx - inner, y: cy - inner),
-                          controlPoint2: NSPoint(x: cx - inner, y: cy - inner))
-            sparkle.curve(to: NSPoint(x: cx, y: cy + r),
-                          controlPoint1: NSPoint(x: cx - inner, y: cy + inner),
-                          controlPoint2: NSPoint(x: cx - inner, y: cy + inner))
+            sparkle.move(to: NSPoint(x: 27, y: 5))
+            for point in [(28.8, 10.2), (34.0, 12.0), (28.8, 13.8),
+                          (27.0, 19.0), (25.2, 13.8), (20.0, 12.0),
+                          (25.2, 10.2)] {
+                sparkle.line(to: NSPoint(x: point.0, y: point.1))
+            }
             sparkle.close()
             NSColor.white.setFill()
             sparkle.fill()
-
             return true
         }
-    }()
+    }
 }
