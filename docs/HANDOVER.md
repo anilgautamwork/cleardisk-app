@@ -192,3 +192,35 @@ Plan-level notes that matter when you continue:
 4. When to start the Mac App Store edition (after direct 1.0 ships is the plan).
 
 Contact for product questions: the owner (anilgautam1180@gmail.com). Support address for customers: hello@cleardisk.app.
+
+
+## Continuation — experience, typography, access setup (5 September 2026)
+
+Owner requested awesome-design-md + UI UX Pro Max for native/website design, treemap loading and animation. Then requested Apple-style reading typography using plugin87/ux-ui-agent-skills, and fewer permission interruptions with a Scan my disk action. Talivia was explicitly paused until after launch: no tracker, service or analytics dependency added.
+
+### Native changes and installer
+
+Native branch codex/brand-preview includes 5e4a929, 7d1b65d, 30f7ce1, bbb702e and edf4f0a. Graphite semantic surfaces, compact disk summary, redesigned welcome/scanning states, native system typography, readable dark treemap colours. Initial derived reports build on the worker before publishing the tree. Treemap geometry uses immutable bounded snapshots, detached work, cancellation and stale-result guards; immediate skeleton/loading and empty state. Progress reports measured files/bytes and real stages, not a fabricated percentage; Reduce Motion is respected. Existing deletion safeguards unchanged.
+
+Scan my disk targets the root through a central access gate. Before access is confirmed, an inline setup page points to System Settings → Privacy & Security → Full Disk Access. Checking/returning from Settings does not start scanning. Explicit folder choice remains. Old Safari enumeration probe replaced with a conservative read-only open of protected TCC.db paths (no contents read/queried). Apple provides no public FDA status API, so a false negative is possible and additional macOS/iCloud restrictions/prompts cannot be ruled out. Relaunch closes the old instance only on success and is disabled while pending.
+
+Final release: 0.1.3 build4, macOS15+, universal x86_64/arm64, Developer ID team CH96562777. App and DMG notarized/stapled; strict codesign and Gatekeeper checks pass. dist/ClearDisk.dmg and versioned alias dist/ClearDisk-0.1.3.dmg are identical: 2,999,122 bytes; SHA-256 bf00af0bb97d883be8f4cd9968e5c0634ac2b91176384734853fb866afc4b875. Same binary copied to website/public/ClearDisk.dmg. Native source through edf4f0a plus Info.plist 0.1.3/build4. Release log /tmp/cleardisk-apple-access-release-verified.log. Older0.1.2 package was superseded before publishing.
+
+Validation: 25 Swift tests pass; debug and universal release builds pass. Independent code review found no blocker; contrast and repeat-relaunch issues corrected. Native isolated UI QA verified welcome, Scan my disk → inline access, repeated check and Back at 1100×752 without granting OS permissions. Earlier QA completed a real home scan and treemap drill-down/back; no files removed. Access-granted Settings/relaunch transitions were code-reviewed but not live-tested by changing OS permissions. Temporary QA apps are not release deliverables.
+
+Remaining native limitations: no public FDA status API; explicit graphite appearance (automatic theme/settings still pending); initial bounded map snapshot and post-delete derived updates remain main-isolated; no end-to-end speed benchmark; low-level scan cancellation and full two-pass scan remain follow-up work.
+
+### Website current design and verification
+
+website/ remains a separate repository, sole page owner. Approved future web/ Worker remains sole production /api/* owner. Website source commit98ac3329564acd7d27d5cdfcc62fd94d59b5e6eb is pushed to existing Sites source main. Pale reading surfaces and centered product hero supersede earlier all-dark/split hero. Native system font stack replaces Geist, body17–21px and guide text19px, controlled600-weight headings, consistent violet download pills. Dark demonstration tokens explicitly scoped. Supplied plugin87 Apple reference and typography tokens used; see website/docs/DESIGN.md and BRANDING.md. No paid font purchased/bundled; no callable MyFonts tool available.
+
+Storage scan illustration remains labelled example data and only animates on request. Page entrance motion is progressive enhancement over visible SSR content and respects Reduce Motion. Background shader no longer mounted; attributed ThreeUI source retained. Five guides, metadata/schema, internal links, and test-only checkout remain. Private preview stays noindex with empty sitemap. Download page now matches Scan my disk/access flow and0.1.3 binary.
+
+12 website unit tests, typecheck, lint, build and compiled HTTP checks passed. HTTP checks cover12 HTML routes, metadata, articles, related links,404, robots/sitemap and download. Served DMG SHA matches exact native artifact. New key contrast pairs verified: body7.52:1, muted5.79:1, white action text6.61:1, guide body10.01:1. Static design review confirmed scope/cascade; fixed mobile CTA specificity. Browser UI QA was not requested or performed.
+
+Design tools installed by explicit owner request: Product Design, Frontend Design Premium, Figma enabled in Codex; UI UX Pro Max and Frontend Design local skills installed. Figma account access not exercised. Repository references stored under docs/design-references.
+
+This does not complete the original1.0 plans: Worker licensing/fulfillment tasks2–8, native activation/final removal flow, two-pass scanning, automatic appearance preferences, production live checkout, support inbox/domain/Search Console and public launch remain. Keep the original ledger and Claude worktree intact. Do not enable live Stripe merely because design work is finished. Talivia stays paused.
+
+
+Private publish succeeded: https://cleardisk-mac.anilgautam1180.chatgpt.site (owner-only access rechecked, one owner, no groups/external visitors). Sites version5 from exact source98ac3329564acd7d27d5cdfcc62fd94d59b5e6eb; version ID appgprj_6a9b31a08f1081919bd18fe3e2633559~appgver_7ac07584e7088191b06da1d789d907a4; deployment appgdep_6a9b416c52288191b3f01a4f56e88cea, succeeded, environment revision2. No public access/indexing or live billing enabled.
