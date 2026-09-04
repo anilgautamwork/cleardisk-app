@@ -9,9 +9,12 @@ public enum RemovalBatch {
     public struct Target: Hashable, Sendable {
         public let path: String
         public let contentsOnly: Bool
-        public init(path: String, contentsOnly: Bool = false) {
+        /// Direct child names omitted only when expanding a contents target.
+        public let excludingChildNames: [String]
+        public init(path: String, contentsOnly: Bool = false, excludingChildNames: [String] = []) {
             self.path = path
             self.contentsOnly = contentsOnly
+            self.excludingChildNames = contentsOnly ? Array(Set(excludingChildNames)).sorted() : []
         }
     }
 
@@ -44,13 +47,14 @@ public enum RemovalBatch {
         for target in targets {
             do {
                 let path = try normalized(target.path)
-                guard seenTargets.insert(Target(path: path, contentsOnly: target.contentsOnly)).inserted else { continue }
+                guard seenTargets.insert(Target(path: path, contentsOnly: target.contentsOnly, excludingChildNames: target.excludingChildNames)).inserted else { continue }
                 if target.contentsOnly {
                     try validateContentsRoot(path)
                     // Expand only direct children. A directory child is one
                     // whole target, leaving the selected container intact.
                     let children = try FileManager.default.contentsOfDirectory(atPath: path)
-                    for name in children.sorted() { addCandidate(path + "/" + name) }
+                    let excluded = Set(target.excludingChildNames)
+                    for name in children.sorted() where !excluded.contains(name) { addCandidate(path + "/" + name) }
                 } else {
                     addCandidate(path)
                 }

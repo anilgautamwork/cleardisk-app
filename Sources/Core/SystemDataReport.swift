@@ -17,6 +17,12 @@ public struct SystemDataReport: Sendable {
         public let safety: Safety
         /// Absolute paths whose CONTENTS get trashed on clean (safe rows only).
         public let cleanRoots: [String]
+        /// Application-cache measurements exclude browser directories. Carry
+        /// that same boundary into contents-only cleanup, even if those
+        /// browser directories changed after the scan.
+        public var cleanExcludingNames: [String] {
+            id == "app-caches" ? SystemDataScan.browserCacheDirNames.sorted() : []
+        }
         /// Where "Reveal in Finder" points for this row.
         public var revealPath: String? {
             if let first = cleanRoots.first { return first }

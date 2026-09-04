@@ -149,20 +149,33 @@ final class AppState {
     }
 
     func undoLastClean() {
-        guard let items = toast?.undoItems else { return }
+        guard let items = toast?.undoItems, !items.isEmpty else { return }
         toast = nil
-        let restored = TrashService.restore(items)
+        let result = TrashService.restoreReporting(items)
         if let root, !pendingUndoNodes.isEmpty {
-            TreeSurgery.reattach(pendingUndoNodes, root: root, scanPath: scanPath)
-            let bytes = pendingUndoNodes.reduce(Int64(0)) { $0 + $1.node.size }
+            let bytes = TreeSurgery.reattachRestored(pendingUndoNodes,
+                                                    originalPaths: result.restoredPaths,
+                                                    root: root, scanPath: scanPath)
             TreeSurgery.adjustTrash(by: -bytes, root: root,
                                     scanPath: scanPath, homePath: NSHomeDirectory())
-            pendingUndoNodes = []
-            rebuildDerived()
-            refreshVolumeInfo()
-            treeVersion += 1
+            if !result.restoredPaths.isEmpty {
+                rebuildDerived()
+                refreshVolumeInfo()
+                treeVersion += 1
+            }
         }
-        showToast("Put back \(restored) of \(items.count) item\(items.count == 1 ? "" : "s") — numbers updated.")
+        // Retain only failures with a real Trash URL for a possible retry.
+        // A missing undo URL cannot restore a node or reduce the Trash count.
+        let retryPaths = Set(result.failedItems.map(\.originalPath))
+        pendingUndoNodes = pendingUndoNodes.filter { retryPaths.contains($0.originalPath) }
+        let restored = result.restoredPaths.count
+        if result.failures.isEmpty {
+            showToast("Put back \(restored) of \(items.count) item\(items.count == 1 ? "" : "s").")
+        } else {
+            let detail = result.failures.first ?? ""
+            showToast("Put back \(restored) of \(items.count) items. \(result.failures.count) couldn’t be restored. \(detail)",
+                      undo: result.failedItems)
+        }
     }
 
     init() {

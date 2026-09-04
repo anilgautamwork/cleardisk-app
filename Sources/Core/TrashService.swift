@@ -1,8 +1,8 @@
 import Foundation
 
-/// The only deletion path in ClearDisk. Everything goes through
-/// FileManager.trashItem — never a permanent delete — behind a
-/// deny-by-default blocklist.
+/// The only removal path in ClearDisk. Trash and permanent removal share
+/// the same deny-by-default blocklist; callers provide the required user
+/// confirmation before invoking either operation.
 public enum TrashService {
 
     public enum Verdict: Equatable, Sendable {
@@ -107,17 +107,34 @@ public enum TrashService {
         try FileManager.default.removeItem(atPath: path)
     }
 
-    /// Undo: move trashed items back where they came from. Returns how many
-    /// came back (items the user already deleted from the Trash won't).
-    public static func restore(_ items: [TrashedItem]) -> Int {
-        var restored = 0
+    public struct RestoreResult: Sendable {
+        public let restoredPaths: [String]
+        public let failedItems: [TrashedItem]
+        public let failures: [String]
+    }
+
+    /// Report actual filesystem successes so callers never reattach a failed
+    /// restore to their scan tree. Existing destination files are not replaced.
+    public static func restoreReporting(_ items: [TrashedItem]) -> RestoreResult {
+        var paths: [String] = []
+        var failed: [TrashedItem] = []
+        var failures: [String] = []
         for item in items {
-            if (try? FileManager.default.moveItem(at: item.trashURL,
-                                                  to: URL(fileURLWithPath: item.originalPath))) != nil {
-                restored += 1
+            do {
+                try FileManager.default.moveItem(at: item.trashURL,
+                                                 to: URL(fileURLWithPath: item.originalPath))
+                paths.append(item.originalPath)
+            } catch {
+                failed.append(item)
+                failures.append("\(item.originalPath): \(error.localizedDescription)")
             }
         }
-        return restored
+        return RestoreResult(restoredPaths: paths, failedItems: failed, failures: failures)
+    }
+
+    /// Compatibility wrapper for callers that only need the successful count.
+    public static func restore(_ items: [TrashedItem]) -> Int {
+        restoreReporting(items).restoredPaths.count
     }
 
     public enum TrashError: Error, LocalizedError {

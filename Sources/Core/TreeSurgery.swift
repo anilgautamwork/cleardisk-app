@@ -9,6 +9,7 @@ public enum TreeSurgery {
     public struct Removed {
         public let parentPath: String
         public let node: FileNode
+        public var originalPath: String { (parentPath as NSString).appendingPathComponent(node.name) }
     }
 
     /// Nodes from the scan root down to `path`, or nil when the path isn't in
@@ -57,6 +58,23 @@ public enum TreeSurgery {
                 ancestor.size += item.node.size
             }
         }
+    }
+
+    /// Reattach only nodes whose filesystem restoration actually succeeded.
+    /// Returns the bytes restored to the tree, for the matching Trash update.
+    /// Nodes lacking an undo URL never appear in originalPaths and stay removed.
+    @discardableResult
+    public static func reattachRestored(_ removed: [Removed], originalPaths: [String],
+                                        root: FileNode, scanPath: String) -> Int64 {
+        let successful = Set(originalPaths)
+        var bytes: Int64 = 0
+        for item in removed where successful.contains(item.originalPath) {
+            guard let parent = chain(for: item.parentPath, root: root, scanPath: scanPath)?.last,
+                  !(parent.children ?? []).contains(where: { $0.name == item.node.name }) else { continue }
+            reattach([item], root: root, scanPath: scanPath)
+            bytes += item.node.size
+        }
+        return bytes
     }
 
     /// Grow (or shrink, for undo) the home folder's .Trash node — files moved
