@@ -7,15 +7,9 @@ struct WelcomeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
-                HStack {
-                    Label("Your Mac. Your space.", systemImage: "internaldrive")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(UI.textSecondary)
-                    Spacer()
-                    Text("Preview").font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(UI.accentLight).padding(.horizontal, 9).padding(.vertical, 5)
-                        .background(UI.selectedRowBG, in: Capsule())
-                }
+                Label("Your Mac. Your space.", systemImage: "internaldrive")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(UI.textSecondary)
                 HStack(alignment: .center, spacing: 30) {
                     VStack(alignment: .leading, spacing: 18) {
                         Text("Make room for\nwhat’s next.")

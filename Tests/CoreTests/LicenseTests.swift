@@ -22,4 +22,26 @@ final class LicenseTests: XCTestCase {
         XCTAssertFalse(ReceiptVerifier.isValid(tampered, machineId: "mac-1", publicKeyRaw: pub))
         XCTAssertFalse(ReceiptVerifier.isValid(receipt, machineId: "mac-1", publicKeyRaw: Data(repeating: 1, count: 32)))
     }
+    func testInvalidSignatureEncodingFailsVerification() {
+        let pub = Curve25519.Signing.PrivateKey().publicKey.rawRepresentation
+        let receipt = LicenseReceipt(key: "CLDK-ABCD-EFGH-JKMN-PQRS", email: "a@b.c", machineId: "mac-1",
+                                      activatedAt: "2026-09-05T00:00:00Z", signature: "not base64!!", lastCheckedAt: nil)
+        XCTAssertFalse(ReceiptVerifier.isValid(receipt, machineId: "mac-1", publicKeyRaw: pub))
+    }
+    func testShortOrEmptyPublicKeyFailsVerification() throws {
+        let priv = Curve25519.Signing.PrivateKey()
+        let key = "CLDK-ABCD-EFGH-JKMN-PQRS"
+        let sig = try priv.signature(for: Data("cleardisk:v1:\(key):mac-1".utf8)).base64EncodedString()
+        let receipt = LicenseReceipt(key: key, email: "a@b.c", machineId: "mac-1",
+                                      activatedAt: "2026-09-05T00:00:00Z", signature: sig, lastCheckedAt: nil)
+        XCTAssertFalse(ReceiptVerifier.isValid(receipt, machineId: "mac-1", publicKeyRaw: Data(repeating: 1, count: 31)))
+        XCTAssertFalse(ReceiptVerifier.isValid(receipt, machineId: "mac-1", publicKeyRaw: Data()))
+    }
+    func testLicenseReceiptRoundTripsThroughJSON() throws {
+        let receipt = LicenseReceipt(key: "CLDK-ABCD-EFGH-JKMN-PQRS", email: "a@b.c", machineId: "mac-1",
+                                      activatedAt: "2026-09-05T00:00:00Z", signature: "c2ln", lastCheckedAt: Date())
+        let data = try JSONEncoder().encode(receipt)
+        let decoded = try JSONDecoder().decode(LicenseReceipt.self, from: data)
+        XCTAssertEqual(decoded, receipt)
+    }
 }

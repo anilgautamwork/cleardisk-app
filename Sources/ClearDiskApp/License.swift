@@ -40,7 +40,7 @@ enum MachineIdentity {
 enum LicenseError: LocalizedError, Sendable {
     case invalidKey
     case revoked
-    case limitReached([String])
+    case limitReached(names: [String], serverMessage: String?)
     case offline
     case server(String)
 
@@ -50,9 +50,11 @@ enum LicenseError: LocalizedError, Sendable {
             return "That key isn’t recognised. Check for typos or use Recover on cleardisk.app."
         case .revoked:
             return "This license was refunded and is no longer active."
-        case .limitReached(let names):
-            let list = names.joined(separator: ", ")
-            return "Already in use on 3 Macs (\(list)). Email hello@cleardisk.app to free a slot."
+        case .limitReached(let names, let serverMessage):
+            if !names.isEmpty {
+                return "Already in use on 3 Macs: \(names.joined(separator: ", ")). Email hello@cleardisk.app to free a slot."
+            }
+            return serverMessage ?? "This key is already in use on three Macs. Email hello@cleardisk.app to free a slot."
         case .offline:
             return "Couldn’t reach the license server. Check your connection and try again."
         case .server(let message):
@@ -60,6 +62,11 @@ enum LicenseError: LocalizedError, Sendable {
         }
     }
 }
+
+/// Shape of the Worker's JSON error bodies. Used to tell a real API error
+/// (safe to surface as "invalid key"/"revoked") apart from a Cloudflare or
+/// proxy error page, which decodes to nil here.
+private struct ErrorBody: Decodable { let error: String }
 
 /// Talks to the Worker's `/api/activate`. Runs entirely off the main actor;
 /// callers `await` it from `LicenseStore`.
@@ -69,6 +76,7 @@ struct LicenseClient {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("ClearDisk/\(appVersion) (macOS)", forHTTPHeaderField: "User-Agent")
         request.timeoutInterval = 15
         request.httpBody = try JSONEncoder().encode([
             "key": key,
@@ -97,16 +105,21 @@ struct LicenseClient {
             return LicenseReceipt(key: payload.key, email: payload.email, machineId: payload.machineId,
                                    activatedAt: payload.activatedAt, signature: payload.signature, lastCheckedAt: Date())
         case 404:
+            guard (try? JSONDecoder().decode(ErrorBody.self, from: data)) != nil else {
+                throw LicenseError.server("The license server returned an unexpected response (404).")
+            }
             throw LicenseError.invalidKey
         case 403:
+            guard (try? JSONDecoder().decode(ErrorBody.self, from: data)) != nil else {
+                throw LicenseError.server("The license server returned an unexpected response (403).")
+            }
             throw LicenseError.revoked
         case 409:
-            struct Payload: Decodable { let error: String, machines: [String] }
-            let machines = (try? JSONDecoder().decode(Payload.self, from: data))?.machines ?? []
-            throw LicenseError.limitReached(machines)
+            struct Payload: Decodable { let error: String, machines: [String]? }
+            let payload = try? JSONDecoder().decode(Payload.self, from: data)
+            throw LicenseError.limitReached(names: payload?.machines ?? [], serverMessage: payload?.error)
         default:
-            struct Payload: Decodable { let error: String }
-            let message = (try? JSONDecoder().decode(Payload.self, from: data))?.error
+            let message = (try? JSONDecoder().decode(ErrorBody.self, from: data))?.error
                 ?? "Something went wrong (\(http.statusCode))."
             throw LicenseError.server(message)
         }
@@ -148,6 +161,7 @@ final class LicenseStore {
     func activate(rawKey: String) async throws {
         guard let key = LicenseKey.normalize(rawKey) else { throw LicenseError.invalidKey }
         try await refresh(key: key)
+        pendingKey = nil
     }
 
     /// Re-validates a licensed receipt roughly weekly, so a revoked or

@@ -50,6 +50,10 @@ struct UnlockSheet: View {
         }
         .padding(28).frame(width: 590)
         .onAppear { keyText = license.pendingKey ?? "" }
+        .onChange(of: license.pendingKey) { _, key in
+            if let key, !activating { keyText = key; activate() }
+        }
+        .onChange(of: keyText) { _, _ in error = nil }
     }
 
     private var bullets: some View {
