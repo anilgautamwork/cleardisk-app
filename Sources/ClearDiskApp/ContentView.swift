@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppState.self) private var state
+    @Environment(LicenseStore.self) private var license
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -48,6 +49,9 @@ struct ContentView: View {
                 NSApp.applicationIconImage = AppIcon.image
             }
         }
+        .sheet(isPresented: Binding(get: { license.showUnlock }, set: { license.showUnlock = $0 })) {
+            UnlockSheet(onActivated: { license.showUnlock = false })
+        }
     }
 }
 
@@ -87,6 +91,7 @@ struct SidebarNavRow: View {
 
 struct SidebarView: View {
     @Environment(AppState.self) private var state
+    @Environment(LicenseStore.self) private var license
 
     private var usedFraction: Double {
         guard state.volumeTotal > 0 else { return 0 }
@@ -201,23 +206,34 @@ struct SidebarView: View {
                 .buttonStyle(.bordered)
             }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Scanning is free, forever")
-                    .font(.system(size: 12, weight: .semibold))
-                Text("1.0 cleanup license: \(Pricing.display) once at launch. This preview has no license activation.")
-                    .font(.system(size: 11.5))
-                    .foregroundStyle(UI.textSecondary)
-                Link(destination: Pricing.purchaseURL) {
-                    Label("Buy for \(Pricing.display)", systemImage: "arrow.up.right")
-                        .font(.system(size: 12, weight: .semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 5)
+            Group {
+                if case .licensed(_, let email) = license.state {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Licensed to \(email)")
+                            .font(.system(size: 12, weight: .semibold))
+                        Text("Cleanup unlocked on this Mac")
+                            .font(.system(size: 11.5))
+                            .foregroundStyle(UI.textSecondary)
+                    }
+                } else {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Scanning is free, forever")
+                            .font(.system(size: 12, weight: .semibold))
+                        Text("Cleanup inside ClearDisk is $10 once.")
+                            .font(.system(size: 11.5))
+                            .foregroundStyle(UI.textSecondary)
+                        Button {
+                            license.showUnlock = true
+                        } label: {
+                            Text("Unlock cleaning — $10 once")
+                                .font(.system(size: 12, weight: .semibold))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 5)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding(.top, 6)
+                    }
                 }
-                .buttonStyle(.borderedProminent)
-                .padding(.top, 6)
-                Text("Test checkout · no real charge")
-                    .font(.system(size: 10.5))
-                    .foregroundStyle(UI.textSecondary)
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)

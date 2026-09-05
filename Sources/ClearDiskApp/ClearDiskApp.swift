@@ -1,20 +1,37 @@
+import AppKit
 import Core
 import SwiftUI
 
 @main
 struct ClearDiskApp: App {
     @State private var state = AppState()
+    @State private var license = LicenseStore()
 
     var body: some Scene {
         WindowGroup("ClearDisk") {
             ContentView()
                 .environment(state)
+                .environment(license)
                 .tint(UI.accent)
                 .preferredColorScheme(.dark)
                 .frame(minWidth: 1100, minHeight: 720)
+                .task {
+                    license.load()
+                    await license.recheckIfStale()
+                }
+                .onOpenURL { license.handle(url: $0) }
         }
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
+        .commands {
+            CommandGroup(after: .appInfo) {
+                Button("License…") { license.showUnlock = true }
+                Divider()
+                Button("Check for Updates…") {
+                    NSWorkspace.shared.open(URL(string: "https://cleardisk.app/download")!)
+                }
+            }
+        }
     }
 }
 

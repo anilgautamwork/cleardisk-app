@@ -36,6 +36,7 @@ struct DestructiveButtonStyle: ButtonStyle {
 /// requires a deliberate choice and exact typed confirmation, never Return.
 struct RemovalConfirmationSheet: View {
     @Environment(AppState.self) private var state
+    @Environment(LicenseStore.self) private var license
     @Environment(\.dismiss) private var dismiss
     let request: RemovalRequest
     var onRemoved: ([String]) -> Void = { _ in }
@@ -49,6 +50,9 @@ struct RemovalConfirmationSheet: View {
     private var selectedBytes: Int64 { request.rows.reduce(0) { $0 + $1.size } }
 
     var body: some View {
+        if !license.isLicensed {
+            UnlockSheet(reclaimBytes: selectedBytes)
+        } else {
         VStack(alignment: .leading, spacing: 20) {
             HStack(spacing: 13) {
                 Image(systemName: confirmingPermanent ? "exclamationmark.triangle.fill" : "trash")
@@ -130,6 +134,7 @@ struct RemovalConfirmationSheet: View {
         }
         .padding(28).frame(width: 590)
         .interactiveDismissDisabled(working)
+        }
     }
 
     private func explanation(_ title: String, _ detail: String, icon: String, color: Color) -> some View {

@@ -13,9 +13,9 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.4</string>
+	<string>1.0.0</string>
 	<key>CFBundleVersion</key>
-	<string>5</string>
+	<string>6</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>LSMinimumSystemVersion</key>
@@ -26,5 +26,10 @@
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 ClearDisk</string>
+	<key>CFBundleURLTypes</key>
+	<array><dict>
+		<key>CFBundleURLName</key><string>app.cleardisk.ClearDisk</string>
+		<key>CFBundleURLSchemes</key><array><string>cleardisk</string></array>
+	</dict></array>
 </dict>
 </plist>
