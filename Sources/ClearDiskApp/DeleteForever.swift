@@ -45,14 +45,25 @@ struct RemovalConfirmationSheet: View {
     @State private var working = false
     @State private var outcome: RemovalBatch.Result?
     @FocusState private var typing: Bool
+    @State private var gated: Bool? = nil          // pinned on first render
+    @State private var unlockedHere = false        // set by UnlockSheet.onActivated
 
     private var matches: Bool { RemovalBatch.confirmationMatches(typed, expected: request.confirmationText) }
     private var selectedBytes: Int64 { request.rows.reduce(0) { $0 + $1.size } }
 
     var body: some View {
-        if !license.isLicensed {
-            UnlockSheet(reclaimBytes: selectedBytes)
-        } else {
+        let showGate = (gated ?? !license.isLicensed) && !unlockedHere
+        Group {
+            if showGate {
+                UnlockSheet(reclaimBytes: selectedBytes, onActivated: { unlockedHere = true })
+            } else {
+                confirmation
+            }
+        }
+        .onAppear { if gated == nil { gated = !license.isLicensed } }
+    }
+
+    private var confirmation: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack(spacing: 13) {
                 Image(systemName: confirmingPermanent ? "exclamationmark.triangle.fill" : "trash")
@@ -134,7 +145,6 @@ struct RemovalConfirmationSheet: View {
         }
         .padding(28).frame(width: 590)
         .interactiveDismissDisabled(working)
-        }
     }
 
     private func explanation(_ title: String, _ detail: String, icon: String, color: Color) -> some View {

@@ -48,7 +48,7 @@ struct UnlockSheet: View {
                 actions
             }
         }
-        .padding(28).frame(width: 520)
+        .padding(28).frame(width: 590)
         .onAppear { keyText = license.pendingKey ?? "" }
     }
 
@@ -123,7 +123,6 @@ struct UnlockSheet: View {
                     licensedEmail = email
                     try? await Task.sleep(for: .seconds(1))
                     onActivated()
-                    dismiss()
                 }
             } catch let licenseError as LicenseError {
                 activating = false
