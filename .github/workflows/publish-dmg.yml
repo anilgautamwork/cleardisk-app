@@ -37,10 +37,10 @@ jobs:
           pathlib.Path(name).write_bytes(data)
           pathlib.Path('SHA256SUMS.txt').write_text(manifest['sha256'] + '  ' + name + '\n')
           PYTHON
-      - name: Publish preview release
+      - name: Publish verified release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          gh release create "$RELEASE_TAG" ClearDisk-*.dmg SHA256SUMS.txt --verify-tag --prerelease --title "ClearDisk ${RELEASE_TAG#v} preview" --notes-file "releases/$RELEASE_TAG.md"
+          gh release create "$RELEASE_TAG" ClearDisk-*.dmg SHA256SUMS.txt --verify-tag --title "ClearDisk ${RELEASE_TAG#v}" --notes-file "releases/$RELEASE_TAG.md"
