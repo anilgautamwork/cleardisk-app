@@ -6,12 +6,14 @@ import SwiftUI
 struct ClearDiskApp: App {
     @State private var state = AppState()
     @State private var license = LicenseStore()
+    @State private var iCloudDoctor = ICloudDoctorState()
 
     var body: some Scene {
         WindowGroup("ClearDisk") {
             ContentView()
                 .environment(state)
                 .environment(license)
+                .environment(iCloudDoctor)
                 .tint(UI.accent)
                 .preferredColorScheme(.dark)
                 .frame(minWidth: 1100, minHeight: 720)
@@ -68,6 +70,7 @@ final class AppState {
         }
     }
 
+    var showICloudDoctor = false
     var phase: Phase = .welcome
     var section: Section = .systemData
     var scanPath = NSHomeDirectory()
@@ -209,6 +212,7 @@ final class AppState {
     }
 
     func showDiskAccess() {
+        showICloudDoctor = false
         diskAccessConfirmed = false
         phase = .diskAccess
     }
@@ -218,6 +222,7 @@ final class AppState {
     }
 
     func startScan(path: String) {
+        showICloudDoctor = false
         // Gate full-disk work here, so welcome, rescan, and choosing "/" in
         // the folder picker cannot enter the scanner before access is checked.
         let decision = ScanAccessPolicy.decision(path: path, diskAccessConfirmed: FullDiskAccess.isConfirmed)

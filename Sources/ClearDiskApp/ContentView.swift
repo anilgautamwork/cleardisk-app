@@ -11,27 +11,31 @@ struct ContentView: View {
             SidebarView()
             Divider().overlay(UI.cardBorder)
             Group {
-                switch state.phase {
-                case .diskAccess:
-                    DiskAccessView()
-                case .welcome:
-                    WelcomeView()
-                case .scanning:
-                    ScanningView()
-                case .done:
-                    Group {
-                        switch state.section {
-                        case .systemData: SystemDataView()
-                        case .reclaimable: ReclaimableView()
-                        case .categories: CategoriesView()
-                        case .browse: BrowserView()
-                        case .treemap: TreemapView()
-                        case .largeFiles: LargeFilesView()
-                        case .search: SearchView()
+                if state.showICloudDoctor {
+                    ICloudDoctorView()
+                } else {
+                    switch state.phase {
+                    case .diskAccess:
+                        DiskAccessView()
+                    case .welcome:
+                        WelcomeView()
+                    case .scanning:
+                        ScanningView()
+                    case .done:
+                        Group {
+                            switch state.section {
+                            case .systemData: SystemDataView()
+                            case .reclaimable: ReclaimableView()
+                            case .categories: CategoriesView()
+                            case .browse: BrowserView()
+                            case .treemap: TreemapView()
+                            case .largeFiles: LargeFilesView()
+                            case .search: SearchView()
+                            }
                         }
+                        .id(state.section)
+                        .transition(.opacity)
                     }
-                    .id(state.section)
-                    .transition(.opacity)
                 }
             }
             .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: state.section)
@@ -138,8 +142,9 @@ struct SidebarView: View {
                     let needsHome = section == .systemData || section == .categories
                     let available = state.phase == .done && (!needsHome || state.homeNode != nil)
                     SidebarNavRow(section: section,
-                                  isSelected: state.section == section && state.phase == .done,
+                                  isSelected: !state.showICloudDoctor && state.section == section && state.phase == .done,
                                   isAvailable: available) {
+                        state.showICloudDoctor = false
                         state.section = section
                     }
                     .help(available ? "" :
@@ -147,6 +152,23 @@ struct SidebarView: View {
                            ? "Scan your home folder or full Mac to see this"
                            : "Run a scan first"))
                 }
+            }
+
+            Button {
+                state.showICloudDoctor = true
+            } label: {
+                Label("iCloud Doctor", systemImage: "icloud")
+                    .font(.system(size: 14, weight: state.showICloudDoctor ? .semibold : .regular))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 10).padding(.vertical, 9)
+                    .background(state.showICloudDoctor ? UI.selectedRowBorder : .clear,
+                                in: RoundedRectangle(cornerRadius: 8))
+                    .contentShape(Rectangle())
+            }.buttonStyle(.plain)
+            if state.showICloudDoctor && state.phase != .done {
+                Button(state.phase == .scanning ? "View Disk Scan" : "Back to Disk Scan") {
+                    state.showICloudDoctor = false
+                }.buttonStyle(.link).tint(UI.accentLight).font(.system(size: 12))
             }
 
             if state.showFDAHint {
