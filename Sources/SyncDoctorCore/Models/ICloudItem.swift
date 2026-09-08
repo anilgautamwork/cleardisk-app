@@ -219,6 +219,7 @@ public struct ICloudItem: Identifiable, Hashable, Codable, Sendable {
 
     public var locality: Locality {
         if isUbiquitous == false { return .notUbiquitous }
+        guard isUbiquitous == true else { return .unknown }
         if isDownloading == true { return .downloading }
         switch downloadStatus {
         case .current, .downloaded: return .local

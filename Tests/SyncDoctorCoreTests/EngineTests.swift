@@ -20,6 +20,7 @@ final class SyncDoctorCoreTests: XCTestCase {
     }
 
     func testLocalityNeverGuesses() {
+        XCTAssertEqual(item(name: "unknown-membership", ubiquitous: nil, status: .unknown, dataless: false).locality, .unknown)
         XCTAssertEqual(item(name: "a", status: .unknown, dataless: nil).locality, .unknown)
         XCTAssertEqual(item(name: "b", status: .unknown, dataless: true).locality, .cloudOnly)
         XCTAssertEqual(item(name: "c", status: .notDownloaded).locality, .cloudOnly)
