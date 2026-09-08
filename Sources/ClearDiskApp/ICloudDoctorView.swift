@@ -80,7 +80,7 @@ struct ICloudDoctorView: View {
             Button("Clear History", role: .destructive) { doctor.clearHistory() }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This clears only ClearDisk’s local sync observations. Your files are unchanged. Potentially stuck labels need new comparable scans at least one hour apart.")
+            Text("This clears only ClearDisk’s local sync observations. Your files are unchanged. Potentially stuck labels need new comparable scans at least three hours apart.")
         }
     }
 
@@ -146,6 +146,13 @@ struct ICloudDoctorView: View {
         if problems > 0 { return "Scan complete — \(problems.formatted()) items need review" }
         if files.contains(where: { $0.isWaitingToUpload || $0.isUploading == true || $0.isDownloading == true }) {
             return "Scan complete — pending transfers observed"
+        }
+        if files.contains(where: {
+            $0.isUbiquitous == nil || ($0.isUbiquitous == true &&
+                ($0.isUploaded == nil || $0.isUploading == nil || $0.isDownloading == nil ||
+                 $0.hasUnresolvedConflicts == nil || $0.downloadStatus == .unknown))
+        }) {
+            return "Scan complete — some sync metadata is unknown"
         }
         return "Scan complete — no errors reported in accessible metadata"
     }
@@ -248,7 +255,7 @@ struct ICloudDoctorView: View {
                     .font(.system(size: 12)).foregroundStyle(UI.reviewText)
             }
             if doctor.stuckPaths.contains(item.path) {
-                Text("Matching pending states were observed at least one hour apart. This does not prove uninterrupted failure between scans.")
+                Text("Matching pending states were observed at least three hours apart. This does not prove uninterrupted failure between scans.")
                     .font(.system(size: 11)).foregroundStyle(UI.reviewText)
             }
             HStack(spacing: 10) {
