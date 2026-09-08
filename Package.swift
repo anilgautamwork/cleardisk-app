@@ -11,10 +11,12 @@ let package = Package(
     ],
     targets: [
         .target(name: "Core"),
+        .target(name: "SyncDoctorCore", exclude: ["ORIGIN.md"]),
         .executableTarget(name: "scan-cli", dependencies: ["Core"]),
         // Local dev shell; the signed/sandboxed Xcode app targets come at
         // distribution time (needs Apple Developer account).
-        .executableTarget(name: "ClearDiskApp", dependencies: ["Core"]),
+        .executableTarget(name: "ClearDiskApp", dependencies: ["Core", "SyncDoctorCore"]),
         .testTarget(name: "CoreTests", dependencies: ["Core"]),
+        .testTarget(name: "SyncDoctorCoreTests", dependencies: ["SyncDoctorCore"]),
     ]
 )
