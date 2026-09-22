@@ -21,6 +21,8 @@ APP=dist/ClearDisk.app
 rm -rf dist
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BUILD_DIR/ClearDiskApp" "$APP/Contents/MacOS/ClearDisk"
+mkdir -p "$APP/Contents/Frameworks"
+ditto .build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework "$APP/Contents/Frameworks/Sparkle.framework"
 cp Scripts/Info.plist "$APP/Contents/Info.plist"
 
 # Regenerate from the shared app drawing; a stale icns must not keep an old brand.
@@ -42,10 +44,17 @@ if [ -z "$IDENTITY" ]; then
 fi
 if [ -n "$IDENTITY" ]; then
   # --timestamp is required for notarization.
+  SPARKLE="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
+  for service in "$SPARKLE"/XPCServices/*.xpc; do
+    codesign --force --options runtime --timestamp --preserve-metadata=entitlements --sign "$IDENTITY" "$service"
+  done
+  codesign --force --options runtime --timestamp --sign "$IDENTITY" "$SPARKLE/Autoupdate"
+  codesign --force --options runtime --timestamp --preserve-metadata=entitlements --sign "$IDENTITY" "$SPARKLE/Updater.app"
+  codesign --force --options runtime --timestamp --sign "$IDENTITY" "$APP/Contents/Frameworks/Sparkle.framework"
   codesign --force --options runtime --timestamp --sign "$IDENTITY" "$APP"
   echo "signed with: $IDENTITY"
 else
-  codesign --force --sign - "$APP"
+  codesign --force --deep --sign - "$APP"
   echo "signed ad-hoc (no identity found)"
 fi
 

@@ -190,6 +190,6 @@ struct SystemDataView: View {
                     .init(path: $0, contentsOnly: true, excludingChildNames: row.cleanExcludingNames)
                 }
             },
-            confirmationText: "DELETE", contentsOnly: true)
+            contentsOnly: true)
     }
 }

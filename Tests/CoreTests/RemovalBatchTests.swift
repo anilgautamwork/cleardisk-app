@@ -123,12 +123,11 @@ final class RemovalBatchTests: XCTestCase {
         XCTAssertTrue(exists(root))
     }
 
-    func testPermanentConfirmationRequiresExactNonemptyExpectedText() {
-        XCTAssertTrue(RemovalBatch.confirmationMatches("report.txt", expected: "report.txt"))
-        for typed in ["", "report", "Report.txt", " report.txt", "report.txt ", "report.txt\n"] {
-            XCTAssertFalse(RemovalBatch.confirmationMatches(typed, expected: "report.txt"), typed)
+    func testPermanentConfirmationRequiresDeleteKeyword() {
+        XCTAssertTrue(RemovalBatch.confirmationMatches("delete"))
+        for typed in ["", "report.txt", "DELETE", "Delete", " delete", "delete ", "delete\n", "yes"] {
+            XCTAssertFalse(RemovalBatch.confirmationMatches(typed), typed)
         }
-        XCTAssertFalse(RemovalBatch.confirmationMatches("", expected: ""))
     }
 
     func testParentTraversalIsRefusedRatherThanNormalizedAcrossASymlink() throws {

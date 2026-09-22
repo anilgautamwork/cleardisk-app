@@ -4,6 +4,8 @@ import SwiftUI
 
 @main
 struct ClearDiskApp: App {
+    @NSApplicationDelegateAdaptor(UpdateAppDelegate.self) private var appDelegate
+    @StateObject private var updater = AppUpdater()
     @State private var state = AppState()
     @State private var license = LicenseStore()
     @State private var iCloudDoctor = ICloudDoctorState()
@@ -18,6 +20,9 @@ struct ClearDiskApp: App {
                 .preferredColorScheme(.dark)
                 .frame(minWidth: 1100, minHeight: 720)
                 .task {
+                    appDelegate.state = state
+                    appDelegate.iCloudDoctor = iCloudDoctor
+                    updater.start()
                     license.load()
                     await license.recheckIfStale()
                 }
@@ -30,8 +35,8 @@ struct ClearDiskApp: App {
                 Button("License…") { license.showUnlock = true }
                 Divider()
                 Button("Check for Updates…") {
-                    NSWorkspace.shared.open(URL(string: "https://cleardisk.app/download")!)
-                }
+                    updater.checkForUpdates()
+                }.disabled(!updater.canCheckForUpdates)
             }
         }
     }
@@ -70,6 +75,7 @@ final class AppState {
         }
     }
 
+    var activeRemovals = 0
     var showICloudDoctor = false
     var phase: Phase = .welcome
     var section: Section = .systemData

@@ -13,9 +13,16 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1.1</string>
+	<string>2.0.0</string>
 	<key>CFBundleVersion</key>
-	<string>9</string>
+	<string>11</string>
+    <key>SUFeedURL</key><string>https://cleardisk.app/updates/appcast.xml</string>
+    <key>SUPublicEDKey</key><string>B6Sa/CaM6NuyemDRu2Nak3b8GzaEFRH23cim6wiu4Hk=</string>
+    <key>SURequireSignedFeed</key><true/>
+    <key>SUVerifyUpdateBeforeExtraction</key><true/>
+    <key>SUEnableAutomaticChecks</key><true/>
+    <key>SUAutomaticallyUpdate</key><false/>
+    <key>SUAllowsAutomaticUpdates</key><false/>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>LSMinimumSystemVersion</key>

@@ -11,12 +11,11 @@ struct RemovalRequest: Identifiable {
     let id = UUID()
     let rows: [Row]
     let targets: [RemovalBatch.Target]
-    let confirmationText: String
     var contentsOnly = false
 
     static func item(name: String, path: String, size: Int64) -> Self {
         Self(rows: [Row(id: path, name: name, size: size)],
-             targets: [.init(path: path)], confirmationText: name)
+             targets: [.init(path: path)])
     }
 }
 
@@ -48,7 +47,7 @@ struct RemovalConfirmationSheet: View {
     @State private var gated: Bool? = nil          // pinned on first render
     @State private var unlockedHere = false        // set by UnlockSheet.onActivated
 
-    private var matches: Bool { RemovalBatch.confirmationMatches(typed, expected: request.confirmationText) }
+    private var matches: Bool { RemovalBatch.confirmationMatches(typed) }
     private var selectedBytes: Int64 { request.rows.reduce(0) { $0 + $1.size } }
 
     var body: some View {
@@ -102,15 +101,15 @@ struct RemovalConfirmationSheet: View {
             }
             if confirmingPermanent && outcome == nil {
                 VStack(alignment: .leading, spacing: 9) {
-                    Text("Type the following to confirm permanent removal:")
+                    Text("Type delete to confirm permanent removal:")
                         .font(.system(size: 14)).foregroundStyle(UI.textSecondary)
-                    Text(request.confirmationText)
+                    Text("delete")
                         .font(.system(size: 14, weight: .semibold, design: .monospaced))
                         .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                    TextField("Confirmation", text: $typed)
+                    TextField("delete", text: $typed)
                         .textFieldStyle(.roundedBorder).font(.system(size: 14))
                         .focused($typing).disabled(working)
-                        .accessibilityLabel("Type \(request.confirmationText) to confirm permanent removal")
+                        .accessibilityLabel("Type delete to confirm permanent removal")
                 }
             }
             if working {
@@ -162,12 +161,14 @@ struct RemovalConfirmationSheet: View {
         guard !working, outcome == nil, !request.targets.isEmpty else { return }
         if method == .permanently { guard confirmingPermanent, matches else { return } }
         working = true
+        state.activeRemovals += 1
         let targets = request.targets
         Task {
             let result = await Task.detached(priority: .userInitiated) {
                 RemovalBatch.perform(targets: targets, method: method)
             }.value
             working = false
+            state.activeRemovals -= 1
             if !result.removedPaths.isEmpty {
                 state.applyRemoval(paths: result.removedPaths, movedToTrash: method == .trash)
                 onRemoved(result.removedPaths)

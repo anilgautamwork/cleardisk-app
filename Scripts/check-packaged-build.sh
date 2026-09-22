@@ -10,3 +10,13 @@ if [[ -z "$BUILT_UUIDS" || "$BUILT_UUIDS" != "$PACKAGED_UUIDS" ]]; then
   exit 1
 fi
 echo "Packaged executable matches the current universal build."
+python3 - <<'PY_CHECK'
+import plistlib
+from pathlib import Path
+info = plistlib.loads(Path('dist/ClearDisk.app/Contents/Info.plist').read_bytes())
+assert info['SUFeedURL'] == 'https://cleardisk.app/updates/appcast.xml'
+assert info['SURequireSignedFeed'] and info['SUVerifyUpdateBeforeExtraction']
+assert not info['SUAllowsAutomaticUpdates'], 'Installation must remain user initiated'
+assert info['SUPublicEDKey'], 'An update verification key must be embedded'
+assert Path('dist/ClearDisk.app/Contents/Frameworks/Sparkle.framework/Sparkle').is_file()
+PY_CHECK

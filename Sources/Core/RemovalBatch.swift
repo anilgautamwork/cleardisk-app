@@ -24,10 +24,9 @@ public enum RemovalBatch {
         public let failures: [String]
     }
 
-    /// Confirmation is deliberately exact; whitespace and case are meaningful
-    /// in filenames. An empty expected value must never authorize deletion.
-    public static func confirmationMatches(_ typed: String, expected: String) -> Bool {
-        !expected.isEmpty && typed == expected
+    /// Require the explicit keyword; never accept an empty or partial entry.
+    public static func confirmationMatches(_ typed: String) -> Bool {
+        typed == "delete"
     }
 
     public static func perform(targets: [Target], method: Method) -> Result {

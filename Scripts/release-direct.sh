@@ -31,11 +31,8 @@ xcrun notarytool submit dist/ClearDisk.zip --keychain-profile "$NOTARY_PROFILE" 
 xcrun stapler staple dist/ClearDisk.app
 
 echo "— building DMG —"
-STAGE=dist/dmg-stage
-rm -rf "$STAGE" && mkdir "$STAGE"
-cp -R dist/ClearDisk.app "$STAGE/"
-ln -s /Applications "$STAGE/Applications"
-hdiutil create -volname ClearDisk -srcfolder "$STAGE" -ov -format UDZO dist/ClearDisk.dmg
+swift Scripts/render-installer.swift dist/installer-background.tiff
+uvx --from dmgbuild==1.6.7 dmgbuild -s Scripts/dmg-settings.py "ClearDisk" dist/ClearDisk.dmg
 # The DMG container needs its own signature for Gatekeeper to accept it.
 IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)"/\1/')
 codesign --force --sign "$IDENTITY" --timestamp dist/ClearDisk.dmg
@@ -43,4 +40,5 @@ xcrun notarytool submit dist/ClearDisk.dmg --keychain-profile "$NOTARY_PROFILE" 
 xcrun stapler staple dist/ClearDisk.dmg
 spctl -a -t open --context context:primary-signature -v dist/ClearDisk.dmg
 
-echo "release ready: dist/ClearDisk.dmg"
+./Scripts/stage-update.sh
+echo "release ready: dist/ClearDisk.dmg and website/public/updates/appcast.xml"

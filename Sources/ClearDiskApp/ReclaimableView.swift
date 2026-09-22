@@ -140,7 +140,6 @@ struct ReclaimableView: View {
         guard !items.isEmpty else { return }
         removalRequest = RemovalRequest(
             rows: items.map { .init(id: $0.id, name: $0.title, size: $0.bytes) },
-            targets: items.map { .init(path: $0.path) },
-            confirmationText: items.count == 1 ? (items[0].path as NSString).lastPathComponent : "DELETE")
+            targets: items.map { .init(path: $0.path) })
     }
 }
