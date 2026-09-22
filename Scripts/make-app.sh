@@ -15,11 +15,12 @@ if grep -rn '\.removeItem(' Sources/ | grep -v 'Sources/Core/TrashService.swift'
 fi
 
 swift build -c release --arch arm64 --arch x86_64
+BUILD_DIR=$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)
 
 APP=dist/ClearDisk.app
 rm -rf dist
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp .build/apple/Products/Release/ClearDiskApp "$APP/Contents/MacOS/ClearDisk"
+cp "$BUILD_DIR/ClearDiskApp" "$APP/Contents/MacOS/ClearDisk"
 cp Scripts/Info.plist "$APP/Contents/Info.plist"
 
 # Regenerate from the shared app drawing; a stale icns must not keep an old brand.
@@ -48,4 +49,6 @@ else
   echo "signed ad-hoc (no identity found)"
 fi
 
-codesign --verify --deep "$APP" && echo "built $APP"
+codesign --verify --deep "$APP"
+./Scripts/check-packaged-build.sh
+echo "built $APP"
