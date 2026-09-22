@@ -9,6 +9,8 @@ final class LicenseTests: XCTestCase {
         XCTAssertNil(LicenseKey.normalize("CLDK-ABCD-EFGH-JKMN"))
         XCTAssertNil(LicenseKey.normalize("CLDK-ABCD-EFGH-JKMN-PQRU"))  // U is not in the alphabet
         XCTAssertNil(LicenseKey.normalize(""))
+        XCTAssertEqual(LicenseKey.normalize(" 123456789\n"), "CLDK-0000-0001-2345-6789")
+        XCTAssertNil(LicenseKey.normalize("123456788"))
     }
     func testReceiptVerifiesOnlyForTheSignedKeyAndMachine() throws {
         let priv = Curve25519.Signing.PrivateKey()
