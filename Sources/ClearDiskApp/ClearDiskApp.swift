@@ -77,6 +77,7 @@ final class AppState {
 
     var activeRemovals = 0
     var showICloudDoctor = false
+    var showMacChecks = false
     var phase: Phase = .welcome
     var section: Section = .systemData
     var scanPath = NSHomeDirectory()
@@ -219,6 +220,7 @@ final class AppState {
 
     func showDiskAccess() {
         showICloudDoctor = false
+        showMacChecks = false
         diskAccessConfirmed = false
         phase = .diskAccess
     }
@@ -229,6 +231,7 @@ final class AppState {
 
     func startScan(path: String) {
         showICloudDoctor = false
+        showMacChecks = false
         // Gate full-disk work here, so welcome, rescan, and choosing "/" in
         // the folder picker cannot enter the scanner before access is checked.
         let decision = ScanAccessPolicy.decision(path: path, diskAccessConfirmed: FullDiskAccess.isConfirmed)

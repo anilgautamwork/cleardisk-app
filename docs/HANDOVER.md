@@ -1,5 +1,9 @@
 # ClearDisk — Developer Handover
 
+## Mac checks 2.1.0 — 3 October 2026 (local implementation, not published)
+
+Added Apple Intelligence asset measurements and an Intel-only app inventory inside the existing ClearDisk sidebar. Source version is 2.1.0/build 12. See [validation, scope and remaining release steps](releases/2.1.0.md). Universal build and 76 tests pass. Native checks confirmed an Intel-only executable and honest partial results for protected AI locations. The local preview is not notarized; public download, updater feed, installed production app, license implementation and website are unchanged. Do not describe this version as live until the normal release pipeline has completed.
+
 ## iCloud Doctor 1.1.0 — 9 September 2026 (current status)
 
 ClearDisk 1.1.0 build 7 integrates the repository-local SyncDoctorCore and an independent iCloud Doctor section. Metadata scans, history, search/filter/folder totals, raw inspection, explicit downloads, licensed local-copy removal and verified document archives are implemented. Sources and partial archives are retained; executable/semantic-metadata files are refused. Cloud originals are never deleted by this section. See Sources/SyncDoctorCore/ORIGIN.md and docs/superpowers/specs/2026-09-09-icloud-doctor-integration.md for limits.

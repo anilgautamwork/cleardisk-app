@@ -6,12 +6,16 @@ struct ContentView: View {
     @Environment(LicenseStore.self) private var license
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    @State private var macChecks = MacChecksState()
+
     var body: some View {
         HStack(spacing: 0) {
             SidebarView()
             Divider().overlay(UI.cardBorder)
             Group {
-                if state.showICloudDoctor {
+                if state.showMacChecks {
+                    MacChecksView(checks: macChecks)
+                } else if state.showICloudDoctor {
                     ICloudDoctorView()
                 } else {
                     switch state.phase {
@@ -142,8 +146,9 @@ struct SidebarView: View {
                     let needsHome = section == .systemData || section == .categories
                     let available = state.phase == .done && (!needsHome || state.homeNode != nil)
                     SidebarNavRow(section: section,
-                                  isSelected: !state.showICloudDoctor && state.section == section && state.phase == .done,
+                                  isSelected: !state.showMacChecks && !state.showICloudDoctor && state.section == section && state.phase == .done,
                                   isAvailable: available) {
+                        state.showMacChecks = false
                         state.showICloudDoctor = false
                         state.section = section
                     }
@@ -155,6 +160,7 @@ struct SidebarView: View {
             }
 
             Button {
+                state.showMacChecks = false
                 state.showICloudDoctor = true
             } label: {
                 Label("iCloud Doctor", systemImage: "icloud")
@@ -168,6 +174,25 @@ struct SidebarView: View {
             if state.showICloudDoctor && state.phase != .done {
                 Button(state.phase == .scanning ? "View Disk Scan" : "Back to Disk Scan") {
                     state.showICloudDoctor = false
+                }.buttonStyle(.link).tint(UI.accentLight).font(.system(size: 12))
+            }
+
+            Button {
+                state.showICloudDoctor = false
+                state.showMacChecks = true
+            } label: {
+                Label("Mac checks", systemImage: "desktopcomputer")
+                    .font(.system(size: 14, weight: state.showMacChecks ? .semibold : .regular))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 10).padding(.vertical, 9)
+                    .background(state.showMacChecks ? UI.selectedRowBorder : .clear,
+                                in: RoundedRectangle(cornerRadius: 8))
+                    .contentShape(Rectangle())
+            }.buttonStyle(.plain)
+            .help("Apple Intelligence storage and Intel app compatibility")
+            if state.showMacChecks && state.phase != .done {
+                Button(state.phase == .scanning ? "View Disk Scan" : "Back to Disk Scan") {
+                    state.showMacChecks = false
                 }.buttonStyle(.link).tint(UI.accentLight).font(.system(size: 12))
             }
 
