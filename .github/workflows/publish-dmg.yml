@@ -2,6 +2,12 @@ name: Publish notarized DMG
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing release tag to publish or verify using this branch's manifest
+        required: true
+        type: string
 permissions:
   contents: write
 jobs:
@@ -20,7 +26,7 @@ jobs:
           git checkout --detach FETCH_HEAD
       - name: Download and verify the notarized build
         env:
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
         run: |
           python3 - <<'PYTHON'
           import hashlib, json, os, pathlib, re, urllib.request
@@ -41,6 +47,24 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
         run: |
-          gh release create "$RELEASE_TAG" ClearDisk-*.dmg SHA256SUMS.txt --verify-tag --title "ClearDisk ${RELEASE_TAG#v}" --notes-file "releases/$RELEASE_TAG.md"
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" --json isDraft,assets > existing-release.json; then
+            # A manual release may already be live. Verify it; never overwrite assets.
+            python3 - <<'PYTHON'
+          import json, os, pathlib
+          tag = os.environ['RELEASE_TAG']
+          manifest = json.loads(pathlib.Path('releases', tag + '.json').read_text())
+          release = json.loads(pathlib.Path('existing-release.json').read_text())
+          assert not release['isDraft'], 'Existing release is still a draft'
+          name = 'ClearDisk-' + manifest['version'] + '.dmg'
+          assets = [a for a in release['assets'] if a['name'] == name]
+          assert len(assets) == 1, 'Expected exactly one versioned DMG'
+          assert assets[0]['size'] == manifest['bytes'], 'Published size differs'
+          assert assets[0]['digest'] == 'sha256:' + manifest['sha256'], 'Published digest differs'
+          print('Existing published release matches the verified manifest; no assets changed.')
+          PYTHON
+          else
+            gh release create "$RELEASE_TAG" ClearDisk-*.dmg SHA256SUMS.txt --verify-tag --title "ClearDisk ${RELEASE_TAG#v}" --notes-file "releases/$RELEASE_TAG.md"
+          fi
