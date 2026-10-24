@@ -42,3 +42,10 @@ Owner requested publication after the local preview. Updated the activation-shee
 Developer ID signed app notarization accepted: df204305-4da8-4fe1-91c5-b9bb1e0fad78. DMG notarization accepted: 170d0c48-6951-423a-a7c8-f34e8a7833a9. Both stapled tickets validate. Gatekeeper accepted the DMG. The Sparkle feed signature verifies with the existing update key. Archive: 8,343,384 bytes, SHA256 c4eef9f0fb016a4d1598ac2027779b209be187722edecfb08c0954863abde746.
 
 The final signed app launched and displayed live performance data using the existing license. It was closed after inspection. Temporary launch arguments enabled menu-bar startup without changing the saved setting. The menu-bar popover interaction and live permission-dependent/administrative actions remain unverified; no private browsing access was granted and no user apps/files were altered for a demonstration. These limits are retained rather than presented as successful tests. Final publication evidence will be appended after live verification.
+
+
+## Publication verified
+
+October 24: website source 028ea9a published with Cloudflare version c8e02a7e-4007-4cde-ac8f-cedff1fbf2d3. App source 21ac575 and manifest commit b95cdf2 are on main, tagged v2.2.0. GitHub Actions 40060105899 succeeded; release asset bytes/hash match the manifest. Live signed feed and both DMG routes match staged artifacts. The installed 2.1.0 app completed the production Sparkle download/install/relaunch to 2.2.0 (13), with the existing license preserved.
+
+200 Swift tests and 58 web tests passed with zero failures/skips. All 179 live HTTP SEO checks passed. Menu-bar popover and live privileged/browser actions retain the limitations above. Staged whitespace review found only one extra final blank line in PerformanceCoordinator.swift; check excluding blank-at-EOF passed, with no behavioral edit or post-sign build change. No separate Swift lint command exists.
