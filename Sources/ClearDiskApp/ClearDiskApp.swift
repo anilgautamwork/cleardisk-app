@@ -1,5 +1,6 @@
 import AppKit
 import Core
+import PerformanceUI
 import SwiftUI
 
 @main
@@ -9,24 +10,49 @@ struct ClearDiskApp: App {
     @State private var state = AppState()
     @State private var license = LicenseStore()
     @State private var iCloudDoctor = ICloudDoctorState()
+    @State private var performance = PerformanceCoordinator()
+    @AppStorage("performance.showMenuBar") private var showPerformanceMenu = false
 
     var body: some Scene {
-        WindowGroup("ClearDisk") {
+        Window("ClearDisk", id: "main") {
             ContentView()
                 .environment(state)
                 .environment(license)
                 .environment(iCloudDoctor)
+                .environment(performance)
                 .tint(UI.accent)
                 .preferredColorScheme(.dark)
                 .frame(minWidth: 1100, minHeight: 720)
                 .task {
                     appDelegate.state = state
                     appDelegate.iCloudDoctor = iCloudDoctor
+                    appDelegate.performance = performance
+                    performance.configure(isLicensed: { license.isLicensed },
+                        requestUnlock: { license.showUnlock = true },
+                        openStorage: {
+                            state.showPerformance = false
+                            state.showICloudDoctor = false
+                            state.showMacChecks = false
+                        },
+                        openPerformance: {
+                            state.showPerformance = true
+                            state.showICloudDoctor = false
+                            state.showMacChecks = false
+                        },
+                        fileOperationActive: { state.activeRemovals > 0 || iCloudDoctor.isOperating })
+                    performance.setMonitoring(visible: state.showPerformance, menuBar: showPerformanceMenu)
                     updater.start()
                     license.load()
                     await license.recheckIfStale()
                 }
                 .onOpenURL { license.handle(url: $0) }
+                .onChange(of: state.showPerformance) { _, visible in
+                    performance.setMonitoring(visible: visible, menuBar: showPerformanceMenu)
+                }
+                .onChange(of: showPerformanceMenu) { _, menu in
+                    performance.setMonitoring(visible: state.showPerformance, menuBar: menu)
+                }
+                .onDisappear { performance.setMonitoring(visible: false, menuBar: showPerformanceMenu) }
         }
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
@@ -78,6 +104,7 @@ final class AppState {
     var activeRemovals = 0
     var showICloudDoctor = false
     var showMacChecks = false
+    var showPerformance = false
     var phase: Phase = .welcome
     var section: Section = .systemData
     var scanPath = NSHomeDirectory()
@@ -219,6 +246,7 @@ final class AppState {
     }
 
     func showDiskAccess() {
+        showPerformance = false
         showICloudDoctor = false
         showMacChecks = false
         diskAccessConfirmed = false
@@ -230,6 +258,7 @@ final class AppState {
     }
 
     func startScan(path: String) {
+        showPerformance = false
         showICloudDoctor = false
         showMacChecks = false
         // Gate full-disk work here, so welcome, rescan, and choosing "/" in

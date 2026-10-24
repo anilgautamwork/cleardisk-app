@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>ClearDisk reads browser tabs when you request a review and changes only the tabs or windows you confirm.</string>
 	<key>CFBundleName</key>
 	<string>ClearDisk</string>
 	<key>CFBundleDisplayName</key>
@@ -13,9 +15,9 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.1.0</string>
+	<string>2.2.0</string>
 	<key>CFBundleVersion</key>
-	<string>12</string>
+	<string>13</string>
     <key>SUFeedURL</key><string>https://cleardisk.app/updates/appcast.xml</string>
     <key>SUPublicEDKey</key><string>B6Sa/CaM6NuyemDRu2Nak3b8GzaEFRH23cim6wiu4Hk=</string>
     <key>SURequireSignedFeed</key><true/>

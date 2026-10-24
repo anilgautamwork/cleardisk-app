@@ -5,12 +5,11 @@
 set -e
 cd "$(dirname "$0")/.."
 
-# Safety gate: permanent deletion is allowed in exactly ONE audited place —
-# TrashService.deleteForever (double-confirmed, type-to-confirm in UI).
-# Anywhere else, the build fails.
-if grep -rn '\.removeItem(' Sources/ | grep -v 'Sources/Core/TrashService.swift' | grep -q removeItem; then
-  echo "FATAL: FileManager.removeItem outside TrashService.deleteForever — ClearDisk is trash-only elsewhere." >&2
-  grep -rn '\.removeItem(' Sources/ | grep -v 'Sources/Core/TrashService.swift' >&2
+# User-file deletion is restricted to TrashService.deleteForever.
+# UsageStore may prune only ClearDisk's own generated performance history.
+if grep -rn '\.removeItem(' Sources/ | grep -v -e 'Sources/Core/TrashService.swift' -e 'Sources/PerformanceCore/Usage.swift' | grep -q removeItem; then
+  echo "FATAL: FileManager.removeItem outside the audited trash and performance-history services." >&2
+  grep -rn '\.removeItem(' Sources/ | grep -v -e 'Sources/Core/TrashService.swift' -e 'Sources/PerformanceCore/Usage.swift' >&2
   exit 1
 fi
 
@@ -24,6 +23,7 @@ cp "$BUILD_DIR/ClearDiskApp" "$APP/Contents/MacOS/ClearDisk"
 mkdir -p "$APP/Contents/Frameworks"
 ditto .build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework "$APP/Contents/Frameworks/Sparkle.framework"
 cp Scripts/Info.plist "$APP/Contents/Info.plist"
+cp Sources/PerformanceCore/Resources/processes.json "$APP/Contents/Resources/processes.json"
 
 # Regenerate from the shared app drawing; a stale icns must not keep an old brand.
 swiftc Sources/ClearDiskApp/AppIcon.swift Scripts/render-icon.swift -o /tmp/cleardisk-render-icon
@@ -51,10 +51,10 @@ if [ -n "$IDENTITY" ]; then
   codesign --force --options runtime --timestamp --sign "$IDENTITY" "$SPARKLE/Autoupdate"
   codesign --force --options runtime --timestamp --preserve-metadata=entitlements --sign "$IDENTITY" "$SPARKLE/Updater.app"
   codesign --force --options runtime --timestamp --sign "$IDENTITY" "$APP/Contents/Frameworks/Sparkle.framework"
-  codesign --force --options runtime --timestamp --sign "$IDENTITY" "$APP"
+  codesign --force --options runtime --timestamp --entitlements Scripts/ClearDisk.entitlements --sign "$IDENTITY" "$APP"
   echo "signed with: $IDENTITY"
 else
-  codesign --force --deep --sign - "$APP"
+  codesign --force --deep --entitlements Scripts/ClearDisk.entitlements --sign - "$APP"
   echo "signed ad-hoc (no identity found)"
 fi
 

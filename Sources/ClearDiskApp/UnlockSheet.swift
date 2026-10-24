@@ -61,7 +61,7 @@ struct UnlockSheet: View {
             bullet("One-time payment, no subscription")
             bullet("Use on 3 Macs")
             bullet("30-day money-back")
-            bullet("Notarized by Apple, runs entirely offline")
+            bullet("Notarized by Apple, file scans stay on your Mac")
         }
     }
 

@@ -1,9 +1,12 @@
 import Core
+import PerformanceUI
 import SwiftUI
 
 struct ContentView: View {
     @Environment(AppState.self) private var state
     @Environment(LicenseStore.self) private var license
+    @Environment(PerformanceCoordinator.self) private var performance
+    @Environment(\.openWindow) private var openWindow
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var macChecks = MacChecksState()
@@ -11,9 +14,12 @@ struct ContentView: View {
     var body: some View {
         HStack(spacing: 0) {
             SidebarView()
+                .disabled(performance.isOperating)
             Divider().overlay(UI.cardBorder)
             Group {
-                if state.showMacChecks {
+                if state.showPerformance {
+                    PerformanceView(coordinator: performance)
+                } else if state.showMacChecks {
                     MacChecksView(checks: macChecks)
                 } else if state.showICloudDoctor {
                     ICloudDoctorView()
@@ -53,6 +59,7 @@ struct ContentView: View {
                 .animation(reduceMotion ? nil : .spring(duration: 0.3), value: state.toast?.id)
         }
         .task {
+            performance.configureWindow { openWindow(id: "main") }
             if !FullDiskAccess.isBundledApp {
                 NSApp.applicationIconImage = AppIcon.image
             }
@@ -137,6 +144,8 @@ struct SidebarView: View {
                     .font(.system(size: 10.5)).foregroundStyle(UI.textSecondary)
             }.padding(15).card()
 
+            ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
             Text("Workspace").font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(UI.textSecondary).padding(.leading, 10).padding(.top, 6)
 
@@ -146,9 +155,10 @@ struct SidebarView: View {
                     let needsHome = section == .systemData || section == .categories
                     let available = state.phase == .done && (!needsHome || state.homeNode != nil)
                     SidebarNavRow(section: section,
-                                  isSelected: !state.showMacChecks && !state.showICloudDoctor && state.section == section && state.phase == .done,
+                                  isSelected: !state.showPerformance && !state.showMacChecks && !state.showICloudDoctor && state.section == section && state.phase == .done,
                                   isAvailable: available) {
                         state.showMacChecks = false
+                        state.showPerformance = false
                         state.showICloudDoctor = false
                         state.section = section
                     }
@@ -160,6 +170,7 @@ struct SidebarView: View {
             }
 
             Button {
+                state.showPerformance = false
                 state.showMacChecks = false
                 state.showICloudDoctor = true
             } label: {
@@ -178,6 +189,7 @@ struct SidebarView: View {
             }
 
             Button {
+                state.showPerformance = false
                 state.showICloudDoctor = false
                 state.showMacChecks = true
             } label: {
@@ -193,6 +205,26 @@ struct SidebarView: View {
             if state.showMacChecks && state.phase != .done {
                 Button(state.phase == .scanning ? "View Disk Scan" : "Back to Disk Scan") {
                     state.showMacChecks = false
+                }.buttonStyle(.link).tint(UI.accentLight).font(.system(size: 12))
+            }
+
+            Button {
+                state.showICloudDoctor = false
+                state.showMacChecks = false
+                state.showPerformance = true
+            } label: {
+                Label("Performance", systemImage: "waveform.path.ecg")
+                    .font(.system(size: 14, weight: state.showPerformance ? .semibold : .regular))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 10).padding(.vertical, 9)
+                    .background(state.showPerformance ? UI.selectedRowBorder : .clear,
+                                in: RoundedRectangle(cornerRadius: 8))
+                    .contentShape(Rectangle())
+            }.buttonStyle(.plain)
+            .help("CPU, memory, processes, background items, internet and usage history")
+            if state.showPerformance && state.phase != .done {
+                Button(state.phase == .scanning ? "View Disk Scan" : "Back to Disk Scan") {
+                    state.showPerformance = false
                 }.buttonStyle(.link).tint(UI.accentLight).font(.system(size: 12))
             }
 
@@ -236,7 +268,10 @@ struct SidebarView: View {
                 .background(UI.reviewBG, in: RoundedRectangle(cornerRadius: 10))
             }
 
-            Spacer()
+            }
+            }.scrollIndicators(.hidden)
+
+            Spacer(minLength: 0)
 
             if state.phase == .done {
                 Button {

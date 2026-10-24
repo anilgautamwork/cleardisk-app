@@ -1,0 +1,1671 @@
+[
+ {
+  "id": "whyslow",
+  "match": {
+   "names": [
+    "ClearDisk",
+    "ClearDiskApp"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": [
+    "app.cleardisk.performance."
+   ]
+  },
+  "title": "ClearDisk (this app)",
+  "summary": "This app. It checks what's running every few seconds.",
+  "whyHigh": "Briefly busy while it reads the process list. It checks less often when its window is closed.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "whyslow",
+  "symbol": "waveform.path.ecg"
+ },
+ {
+  "id": "kernel_task",
+  "match": {
+   "names": [
+    "kernel_task"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Kernel (heat control)",
+  "summary": "The core of macOS. When your Mac gets hot, it holds back other work to cool down.",
+  "whyHigh": "High when your Mac is hot. It's cooling the Mac by keeping other apps off the CPU. Look at what's heating it up.",
+  "verdict": "leave",
+  "idleNote": "Cools your Mac when needed",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "kernel-task",
+  "symbol": "thermometer.medium"
+ },
+ {
+  "id": "WindowServer",
+  "match": {
+   "names": [
+    "WindowServer"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Screen drawing",
+  "summary": "Draws every window, animation and display you see.",
+  "whyHigh": "Busy with many open windows, external or scaled displays, transparency effects, or an app redrawing nonstop.",
+  "verdict": "leave",
+  "fixes": [
+   "explain",
+   "openAccessibilityDisplay",
+   "openDisplaySettings"
+  ],
+  "guide": "windowserver",
+  "symbol": "macwindow.on.rectangle"
+ },
+ {
+  "id": "launchd",
+  "match": {
+   "names": [
+    "launchd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Process launcher",
+  "summary": "Starts and supervises every other process on your Mac.",
+  "whyHigh": "Rarely busy. Brief spikes happen when many apps or services start at once.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "launchd",
+  "symbol": "gearshape.2"
+ },
+ {
+  "id": "loginwindow",
+  "match": {
+   "names": [
+    "loginwindow"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Login and session manager",
+  "summary": "Manages your login session, the lock screen and logging out.",
+  "whyHigh": "Brief activity at login or when locking. Sustained use usually points to a stuck login item.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "loginwindow",
+  "symbol": "person.crop.circle"
+ },
+ {
+  "id": "Dock",
+  "match": {
+   "names": [
+    "Dock"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Dock and Mission Control",
+  "summary": "Runs the Dock, app switching and Mission Control.",
+  "whyHigh": "Busy during Mission Control animations or with many Dock items updating badges.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "dock",
+  "symbol": "dock.rectangle"
+ },
+ {
+  "id": "Finder",
+  "match": {
+   "names": [
+    "Finder"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Finder",
+  "summary": "Shows your files, your desktop and folder windows.",
+  "whyHigh": "Busy while copying files, making previews for big folders, or calculating folder sizes.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "finder",
+  "symbol": "folder"
+ },
+ {
+  "id": "SystemUIServer",
+  "match": {
+   "names": [
+    "SystemUIServer"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Menu bar items",
+  "summary": "Runs parts of the menu bar, such as some status icons.",
+  "whyHigh": "Usually idle. Spikes can come from a misbehaving menu bar extra.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "systemuiserver",
+  "symbol": "menubar.rectangle"
+ },
+ {
+  "id": "ControlCenter",
+  "match": {
+   "names": [
+    "ControlCenter"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Control Center",
+  "summary": "Runs Control Center and many menu bar icons.",
+  "whyHigh": "Busy when menu bar icons update often, like Now Playing or the screen recording indicator.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "controlcenter",
+  "symbol": "switch.2"
+ },
+ {
+  "id": "NotificationCenter",
+  "match": {
+   "names": [
+    "NotificationCenter"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Notification Center",
+  "summary": "Shows notifications and widgets.",
+  "whyHigh": "Busy when widgets refresh or many notifications arrive at once.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "notificationcenter",
+  "symbol": "bell"
+ },
+ {
+  "id": "logd",
+  "match": {
+   "names": [
+    "logd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "System logging",
+  "summary": "Collects log messages from every app and service.",
+  "whyHigh": "Busy when an app writes huge amounts of log messages, often during a bug or crash loop.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "logd",
+  "symbol": "doc.text"
+ },
+ {
+  "id": "opendirectoryd",
+  "match": {
+   "names": [
+    "opendirectoryd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "User accounts directory",
+  "summary": "Looks up user accounts, groups and passwords.",
+  "whyHigh": "Busy at login, or on Macs joined to a company directory.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "opendirectoryd",
+  "symbol": "person.2"
+ },
+ {
+  "id": "configd",
+  "match": {
+   "names": [
+    "configd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Network settings",
+  "summary": "Tracks network settings and connection changes.",
+  "whyHigh": "Busy when networks change often, such as flaky Wi-Fi or a VPN reconnecting.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "configd",
+  "symbol": "network"
+ },
+ {
+  "id": "mDNSResponder",
+  "match": {
+   "names": [
+    "mDNSResponder"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Network names (DNS and Bonjour)",
+  "summary": "Looks up web addresses and finds devices on your network.",
+  "whyHigh": "Busy with many lookups, a crowded local network, or a VPN changing DNS settings.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "mdnsresponder",
+  "symbol": "network"
+ },
+ {
+  "id": "coreaudiod",
+  "match": {
+   "names": [
+    "coreaudiod"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Audio",
+  "summary": "Handles all sound coming in and out of your Mac.",
+  "whyHigh": "Busy while audio plays or records, especially with several apps or audio plug-ins at once.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "coreaudiod",
+  "symbol": "speaker.wave.2"
+ },
+ {
+  "id": "bluetoothd",
+  "match": {
+   "names": [
+    "bluetoothd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Bluetooth",
+  "summary": "Manages Bluetooth devices like AirPods, keyboards and mice.",
+  "whyHigh": "Busy when pairing, with many devices connected, or with a device dropping in and out.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "bluetoothd",
+  "symbol": "dot.radiowaves.left.and.right"
+ },
+ {
+  "id": "airportd",
+  "match": {
+   "names": [
+    "airportd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Wi-Fi",
+  "summary": "Manages your Wi-Fi connection.",
+  "whyHigh": "Busy while scanning for networks, roaming between access points, or holding on to a weak signal.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "airportd",
+  "symbol": "wifi"
+ },
+ {
+  "id": "hidd",
+  "match": {
+   "names": [
+    "hidd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Keyboard, mouse and trackpad",
+  "summary": "Handles input from your keyboard, mouse and trackpad.",
+  "whyHigh": "Busy with high-rate gaming mice or apps that watch every keystroke or mouse movement.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "hidd",
+  "symbol": "keyboard"
+ },
+ {
+  "id": "powerd",
+  "match": {
+   "names": [
+    "powerd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Power management",
+  "summary": "Handles sleep, battery and power settings.",
+  "whyHigh": "Rarely busy. Spikes can happen around sleep and wake.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "powerd",
+  "symbol": "bolt"
+ },
+ {
+  "id": "sharingd",
+  "match": {
+   "names": [
+    "sharingd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "AirDrop and Handoff",
+  "summary": "Runs AirDrop, Handoff and Universal Clipboard.",
+  "whyHigh": "Busy during AirDrop transfers or when nearby Apple devices keep coming in and out of range.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "sharingd",
+  "symbol": "shareplay"
+ },
+ {
+  "id": "distnoted",
+  "match": {
+   "names": [
+    "distnoted"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "System message bus",
+  "summary": "Passes internal messages between apps and macOS.",
+  "whyHigh": "Busy when an app floods the system with messages, usually because of a bug.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "distnoted",
+  "symbol": "arrow.left.arrow.right"
+ },
+ {
+  "id": "cfprefsd",
+  "match": {
+   "names": [
+    "cfprefsd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "App settings",
+  "summary": "Reads and saves settings for every app.",
+  "whyHigh": "Busy when an app saves its settings far too often. Usually brief.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "cfprefsd",
+  "symbol": "slider.horizontal.3"
+ },
+ {
+  "id": "UserEventAgent",
+  "match": {
+   "names": [
+    "UserEventAgent"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "System event handler",
+  "summary": "Reacts to events like network changes and devices being plugged in.",
+  "whyHigh": "Busy when many events fire, such as a USB device reconnecting over and over.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "usereventagent",
+  "symbol": "bolt.horizontal"
+ },
+ {
+  "id": "coreservicesd",
+  "match": {
+   "names": [
+    "coreservicesd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Core services",
+  "summary": "Keeps track of apps and which app opens which file.",
+  "whyHigh": "Busy after installing or moving many apps.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "coreservicesd",
+  "symbol": "gearshape"
+ },
+ {
+  "id": "runningboardd",
+  "match": {
+   "names": [
+    "runningboardd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "App lifecycle manager",
+  "summary": "Decides which apps and helpers may run, and how much they get.",
+  "whyHigh": "Rarely busy. Spikes happen when many apps launch or quit at once.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "runningboardd",
+  "symbol": "gearshape"
+ },
+ {
+  "id": "symptomsd",
+  "match": {
+   "names": [
+    "symptomsd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Network health monitor",
+  "summary": "Watches network performance to pick the best connection.",
+  "whyHigh": "Busy when your network is unstable.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "symptomsd",
+  "symbol": "waveform.path.ecg"
+ },
+ {
+  "id": "tccd",
+  "match": {
+   "names": [
+    "tccd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Privacy permissions",
+  "summary": "Checks which apps may use your camera, files, screen and more.",
+  "whyHigh": "Busy when apps ask for permissions often.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "tccd",
+  "symbol": "hand.raised"
+ },
+ {
+  "id": "securityd",
+  "match": {
+   "names": [
+    "securityd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Security and keychain",
+  "summary": "Handles passwords, certificates and encryption keys.",
+  "whyHigh": "Busy when apps use the keychain heavily or check many certificates.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "securityd",
+  "symbol": "lock.shield"
+ },
+ {
+  "id": "secd",
+  "match": {
+   "names": [
+    "secd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Keychain sync",
+  "summary": "Syncs your passwords with iCloud Keychain.",
+  "whyHigh": "Busy after signing in to iCloud or when many passwords change.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "secd",
+  "symbol": "key"
+ },
+ {
+  "id": "trustd",
+  "match": {
+   "names": [
+    "trustd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Certificate checks",
+  "summary": "Checks that website and app certificates are valid.",
+  "whyHigh": "Busy while browsing many sites or opening many apps for the first time.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "trustd",
+  "symbol": "checkmark.shield"
+ },
+ {
+  "id": "syspolicyd",
+  "match": {
+   "names": [
+    "syspolicyd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "App safety checks (Gatekeeper)",
+  "summary": "Checks that apps are safe before they open.",
+  "whyHigh": "Busy the first time you open newly downloaded apps, or after a macOS update.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "syspolicyd",
+  "symbol": "checkmark.shield"
+ },
+ {
+  "id": "XprotectService",
+  "match": {
+   "names": [
+    "XprotectService",
+    "xprotectd",
+    "XProtectPluginService"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Malware protection",
+  "summary": "Apple's built-in malware scanner.",
+  "whyHigh": "Busy while scanning new downloads, or after its malware definitions update.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "xprotect",
+  "symbol": "shield.lefthalf.filled"
+ },
+ {
+  "id": "amfid",
+  "match": {
+   "names": [
+    "amfid"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Code signature checks",
+  "summary": "Verifies that apps and code are signed and unchanged.",
+  "whyHigh": "Busy when launching many apps, or developer tools that run lots of small programs.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "amfid",
+  "symbol": "signature"
+ },
+ {
+  "id": "nsurlsessiond",
+  "match": {
+   "names": [
+    "nsurlsessiond"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Background downloads",
+  "summary": "Downloads and uploads files for apps in the background.",
+  "whyHigh": "Busy while apps download updates, podcasts, iCloud files or large media.",
+  "verdict": "leave",
+  "idleNote": "Finishes when downloads complete",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "nsurlsessiond",
+  "symbol": "arrow.down.circle"
+ },
+ {
+  "id": "apsd",
+  "match": {
+   "names": [
+    "apsd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Push notifications",
+  "summary": "Keeps the connection that delivers notifications from Apple.",
+  "whyHigh": "Rarely busy. Spikes happen when your network changes.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "apsd",
+  "symbol": "bell.badge"
+ },
+ {
+  "id": "fseventsd",
+  "match": {
+   "names": [
+    "fseventsd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "File change tracker",
+  "summary": "Records which files change, for Time Machine, Spotlight and sync apps.",
+  "whyHigh": "Busy when many files change at once, such as builds, big copies or syncing.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "fseventsd",
+  "symbol": "doc.on.doc"
+ },
+ {
+  "id": "diskarbitrationd",
+  "match": {
+   "names": [
+    "diskarbitrationd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Disk mounting",
+  "summary": "Mounts and ejects disks and USB drives.",
+  "whyHigh": "Busy when drives are plugged in, or when a disk keeps disconnecting.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "diskarbitrationd",
+  "symbol": "externaldrive"
+ },
+ {
+  "id": "kernelmanagerd",
+  "match": {
+   "names": [
+    "kernelmanagerd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Driver manager",
+  "summary": "Loads drivers and system extensions.",
+  "whyHigh": "Busy after installing drivers or a macOS update.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "kernelmanagerd",
+  "symbol": "cpu"
+ },
+ {
+  "id": "softwareupdated",
+  "match": {
+   "names": [
+    "softwareupdated"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Software Update",
+  "summary": "Checks for and downloads macOS updates.",
+  "whyHigh": "Busy while downloading or preparing an update.",
+  "verdict": "leave",
+  "idleNote": "Finishes when the update is ready",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "softwareupdated",
+  "symbol": "arrow.triangle.2.circlepath"
+ },
+ {
+  "id": "backupd",
+  "match": {
+   "names": [
+    "backupd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Time Machine",
+  "summary": "Backs up your Mac with Time Machine.",
+  "whyHigh": "Busy during backups, especially the first one or after many files change.",
+  "verdict": "leave",
+  "idleNote": "Finishes when the backup completes",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "backupd",
+  "symbol": "clock.arrow.circlepath"
+ },
+ {
+  "id": "dasd",
+  "match": {
+   "names": [
+    "dasd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Background task scheduler",
+  "summary": "Decides when background work like backups and indexing runs.",
+  "whyHigh": "Rarely busy itself. It schedules other heavy work.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "dasd",
+  "symbol": "calendar.badge.clock"
+ },
+ {
+  "id": "deleted",
+  "match": {
+   "names": [
+    "deleted"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Storage cleanup",
+  "summary": "Frees purgeable space when your disk gets full.",
+  "whyHigh": "Busy when the disk is nearly full and macOS is clearing caches.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "deleted",
+  "symbol": "trash"
+ },
+ {
+  "id": "ReportCrash",
+  "match": {
+   "names": [
+    "ReportCrash"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Crash reporter",
+  "summary": "Writes a report when an app crashes.",
+  "whyHigh": "Busy when an app keeps crashing. Check which app it is.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "reportcrash",
+  "symbol": "exclamationmark.triangle"
+ },
+ {
+  "id": "spindump",
+  "match": {
+   "names": [
+    "spindump"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Hang reporter",
+  "summary": "Records what an app was doing when it froze.",
+  "whyHigh": "Busy right after an app hangs or shows the spinning beachball.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "spindump",
+  "symbol": "exclamationmark.triangle"
+ },
+ {
+  "id": "VTDecoderXPCService",
+  "match": {
+   "names": [
+    "VTDecoderXPCService"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Video decoding",
+  "summary": "Decodes video for apps that play it.",
+  "whyHigh": "Busy while playing video, especially high resolution or several videos at once.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "vtdecoderxpcservice",
+  "symbol": "play.rectangle"
+ },
+ {
+  "id": "VTEncoderXPCService",
+  "match": {
+   "names": [
+    "VTEncoderXPCService"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Video encoding",
+  "summary": "Encodes video for screen recording, video calls and exports.",
+  "whyHigh": "Busy during video calls, screen recording or video exports.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "vtencoderxpcservice",
+  "symbol": "video"
+ },
+ {
+  "id": "MTLCompilerService",
+  "match": {
+   "names": [
+    "MTLCompilerService"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Graphics compiler",
+  "summary": "Prepares graphics code for apps and games.",
+  "whyHigh": "Busy the first time an app or game runs after an install or update.",
+  "verdict": "leave",
+  "idleNote": "Settles after first launch",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "mtlcompilerservice",
+  "symbol": "cube"
+ },
+ {
+  "id": "lsd",
+  "match": {
+   "names": [
+    "lsd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "App database",
+  "summary": "Tracks installed apps and which app opens each file type.",
+  "whyHigh": "Busy after installing or updating apps.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "lsd",
+  "symbol": "square.grid.2x2"
+ },
+ {
+  "id": "iconservicesagent",
+  "match": {
+   "names": [
+    "iconservicesagent"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "App icons",
+  "summary": "Loads and caches app and file icons.",
+  "whyHigh": "Busy after installing apps, or opening folders with many kinds of files.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "iconservicesagent",
+  "symbol": "photo.on.rectangle"
+ },
+ {
+  "id": "containermanagerd",
+  "match": {
+   "names": [
+    "containermanagerd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "App containers",
+  "summary": "Manages the storage folders of sandboxed apps.",
+  "whyHigh": "Busy after installing or updating sandboxed apps.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "containermanagerd",
+  "symbol": "shippingbox"
+ },
+ {
+  "id": "localspeechrecognition",
+  "match": {
+   "names": [
+    "localspeechrecognition"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "On-device speech recognition",
+  "summary": "Turns speech into text for dictation and Live Captions.",
+  "whyHigh": "Busy while dictating, or with Live Captions turned on.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "localspeechrecognition",
+  "symbol": "waveform"
+ },
+ {
+  "id": "mds",
+  "match": {
+   "names": [
+    "mds"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Spotlight",
+  "summary": "Runs Spotlight search and decides what to index.",
+  "whyHigh": "Busy after a macOS update, a large file copy, or plugging in a drive.",
+  "verdict": "leave",
+  "idleNote": "Settles on its own",
+  "fixes": [
+   "explain",
+   "openSpotlightSettings",
+   "rebuildSpotlightIndex"
+  ],
+  "guide": "mds",
+  "symbol": "magnifyingglass"
+ },
+ {
+  "id": "mds_stores",
+  "match": {
+   "names": [
+    "mds_stores"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Spotlight file indexing",
+  "summary": "Updates the search index for your files.",
+  "whyHigh": "Busy after a macOS update, a large file copy, or plugging in a drive.",
+  "verdict": "leave",
+  "idleNote": "Settles on its own",
+  "fixes": [
+   "explain",
+   "openSpotlightSettings",
+   "rebuildSpotlightIndex"
+  ],
+  "guide": "mds-stores",
+  "symbol": "magnifyingglass"
+ },
+ {
+  "id": "mdworker_shared",
+  "match": {
+   "names": [
+    "mdworker_shared"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Spotlight file reader",
+  "summary": "Reads the contents of files so Spotlight can search them.",
+  "whyHigh": "Busy when many new or changed files need indexing, like builds or big downloads.",
+  "verdict": "leave",
+  "idleNote": "Settles on its own",
+  "fixes": [
+   "explain",
+   "openSpotlightSettings",
+   "rebuildSpotlightIndex"
+  ],
+  "guide": "mdworker-shared",
+  "symbol": "magnifyingglass"
+ },
+ {
+  "id": "mdworker",
+  "match": {
+   "names": [
+    "mdworker"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Spotlight file reader (older)",
+  "summary": "Reads the contents of files so Spotlight can search them.",
+  "whyHigh": "Busy when many new or changed files need indexing.",
+  "verdict": "leave",
+  "idleNote": "Settles on its own",
+  "fixes": [
+   "explain",
+   "openSpotlightSettings",
+   "rebuildSpotlightIndex"
+  ],
+  "guide": "mdworker",
+  "symbol": "magnifyingglass"
+ },
+ {
+  "id": "mdbulkimport",
+  "match": {
+   "names": [
+    "mdbulkimport"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Spotlight bulk indexer",
+  "summary": "Indexes many files at once for Spotlight.",
+  "whyHigh": "Busy right after a macOS update or when a large folder appears.",
+  "verdict": "leave",
+  "idleNote": "Settles on its own",
+  "fixes": [
+   "explain",
+   "openSpotlightSettings",
+   "rebuildSpotlightIndex"
+  ],
+  "guide": "mdbulkimport",
+  "symbol": "magnifyingglass"
+ },
+ {
+  "id": "corespotlightd",
+  "match": {
+   "names": [
+    "corespotlightd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Spotlight app content",
+  "summary": "Indexes content inside apps, like Mail and Notes, for search.",
+  "whyHigh": "Busy after setting up Mail or when apps add lots of searchable content.",
+  "verdict": "leave",
+  "idleNote": "Settles on its own",
+  "fixes": [
+   "explain",
+   "openSpotlightSettings",
+   "rebuildSpotlightIndex"
+  ],
+  "guide": "corespotlightd",
+  "symbol": "magnifyingglass"
+ },
+ {
+  "id": "spotlightknowledged",
+  "match": {
+   "names": [
+    "spotlightknowledged"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Spotlight suggestions",
+  "summary": "Builds Spotlight's knowledge for suggestions and smarter results.",
+  "whyHigh": "Busy after a macOS update while it rebuilds. Calms down on its own.",
+  "verdict": "leave",
+  "idleNote": "Settles on its own",
+  "fixes": [
+   "explain",
+   "openSpotlightSettings",
+   "rebuildSpotlightIndex"
+  ],
+  "guide": "spotlightknowledged",
+  "symbol": "magnifyingglass"
+ },
+ {
+  "id": "photoanalysisd",
+  "match": {
+   "names": [
+    "photoanalysisd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Photos analysis",
+  "summary": "Finds faces, objects and memories in your Photos library.",
+  "whyHigh": "Busy after importing many photos or a macOS update. It mostly works while your Mac is idle and plugged in.",
+  "verdict": "leave",
+  "idleNote": "Runs while plugged in",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "photoanalysisd",
+  "symbol": "photo"
+ },
+ {
+  "id": "mediaanalysisd",
+  "match": {
+   "names": [
+    "mediaanalysisd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Media analysis",
+  "summary": "Analyzes photos and videos for search and Live Text.",
+  "whyHigh": "Busy after importing many photos or videos, or after a macOS update.",
+  "verdict": "leave",
+  "idleNote": "Runs while plugged in",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "mediaanalysisd",
+  "symbol": "photo"
+ },
+ {
+  "id": "photolibraryd",
+  "match": {
+   "names": [
+    "photolibraryd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Photos library",
+  "summary": "Manages your Photos library and iCloud Photos sync.",
+  "whyHigh": "Busy while importing photos or syncing with iCloud Photos.",
+  "verdict": "leave",
+  "idleNote": "Settles after syncing",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "photolibraryd",
+  "symbol": "photo.stack"
+ },
+ {
+  "id": "bird",
+  "match": {
+   "names": [
+    "bird"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "iCloud Drive sync",
+  "summary": "Syncs your iCloud Drive files.",
+  "whyHigh": "Busy while uploading or downloading many files, or when a sync gets stuck.",
+  "verdict": "leave",
+  "idleNote": "Settles after syncing",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "bird",
+  "symbol": "icloud"
+ },
+ {
+  "id": "cloudd",
+  "match": {
+   "names": [
+    "cloudd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "iCloud sync",
+  "summary": "Syncs app data with iCloud, like Notes, Reminders and Safari.",
+  "whyHigh": "Busy after signing in, or when many changes sync at once.",
+  "verdict": "leave",
+  "idleNote": "Settles after syncing",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "cloudd",
+  "symbol": "icloud"
+ },
+ {
+  "id": "fileproviderd",
+  "match": {
+   "names": [
+    "fileproviderd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Cloud file provider",
+  "summary": "Connects Finder to cloud storage like iCloud Drive, Dropbox and OneDrive.",
+  "whyHigh": "Busy while cloud folders sync, or Finder shows many cloud files.",
+  "verdict": "leave",
+  "idleNote": "Settles after syncing",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "fileproviderd",
+  "symbol": "icloud.and.arrow.up"
+ },
+ {
+  "id": "duetexpertd",
+  "match": {
+   "names": [
+    "duetexpertd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Siri Suggestions",
+  "summary": "Learns your app habits to power suggestions.",
+  "whyHigh": "Busy after a macOS update while it rebuilds what it knows. Calms down within a day.",
+  "verdict": "leave",
+  "idleNote": "Calms down within a day",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "duetexpertd",
+  "symbol": "sparkles"
+ },
+ {
+  "id": "siriactionsd",
+  "match": {
+   "names": [
+    "siriactionsd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Siri and Shortcuts actions",
+  "summary": "Indexes app actions for Siri and Shortcuts.",
+  "whyHigh": "Busy after updates, or after installing apps with many Shortcuts actions.",
+  "verdict": "leave",
+  "idleNote": "Calms down within a day",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "siriactionsd",
+  "symbol": "sparkles"
+ },
+ {
+  "id": "suggestd",
+  "match": {
+   "names": [
+    "suggestd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Suggestions",
+  "summary": "Finds contacts, events and suggestions in Mail and Messages.",
+  "whyHigh": "Busy after setting up Mail or receiving many messages.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "suggestd",
+  "symbol": "sparkles"
+ },
+ {
+  "id": "knowledge-agent",
+  "match": {
+   "names": [
+    "knowledge-agent"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Usage history",
+  "summary": "Stores what you use, for suggestions and Screen Time.",
+  "whyHigh": "Rarely busy. Spikes happen after updates.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "knowledge-agent",
+  "symbol": "sparkles"
+ },
+ {
+  "id": "routined",
+  "match": {
+   "names": [
+    "routined"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Significant locations",
+  "summary": "Learns places you visit for suggestions and reminders.",
+  "whyHigh": "Rarely busy.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "routined",
+  "symbol": "location"
+ },
+ {
+  "id": "locationd",
+  "match": {
+   "names": [
+    "locationd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Location services",
+  "summary": "Works out your Mac's location for apps that ask.",
+  "whyHigh": "Busy when apps ask for your location often.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "locationd",
+  "symbol": "location"
+ },
+ {
+  "id": "assistantd",
+  "match": {
+   "names": [
+    "assistantd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Siri",
+  "summary": "Handles Siri requests.",
+  "whyHigh": "Busy while you use Siri or dictation.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "assistantd",
+  "symbol": "sparkles"
+ },
+ {
+  "id": "com.apple.WebKit.WebContent",
+  "match": {
+   "names": [
+    "com.apple.WebKit.WebContent"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Web page (Safari or an app)",
+  "summary": "Runs one web page for Safari, Mail or another app.",
+  "whyHigh": "A busy web page, often with video, ads or a web app left open.",
+  "verdict": "review",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "webkit-webcontent",
+  "symbol": "safari"
+ },
+ {
+  "id": "com.apple.WebKit.Networking",
+  "match": {
+   "names": [
+    "com.apple.WebKit.Networking"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Web networking",
+  "summary": "Handles downloads and connections for Safari and web views.",
+  "whyHigh": "Busy while pages or apps download a lot of data.",
+  "verdict": "review",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "webkit-networking",
+  "symbol": "safari"
+ },
+ {
+  "id": "com.apple.WebKit.GPU",
+  "match": {
+   "names": [
+    "com.apple.WebKit.GPU"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Web graphics",
+  "summary": "Draws web pages and video for Safari and web views.",
+  "whyHigh": "Busy with video, animations or many open tabs.",
+  "verdict": "review",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "webkit-gpu",
+  "symbol": "safari"
+ },
+ {
+  "id": "imagent",
+  "match": {
+   "names": [
+    "imagent"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Messages and FaceTime",
+  "summary": "Sends and receives iMessages and FaceTime calls.",
+  "whyHigh": "Busy after signing in, or syncing a large Messages history.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "imagent",
+  "symbol": "message"
+ },
+ {
+  "id": "remindd",
+  "match": {
+   "names": [
+    "remindd"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Reminders",
+  "summary": "Syncs and schedules your reminders.",
+  "whyHigh": "Busy after signing in or syncing many reminders.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "remindd",
+  "symbol": "checklist"
+ },
+ {
+  "id": "AMPLibraryAgent",
+  "match": {
+   "names": [
+    "AMPLibraryAgent"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Music library",
+  "summary": "Manages your Music and TV library.",
+  "whyHigh": "Busy after importing music or syncing your library.",
+  "verdict": "leave",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "amplibraryagent",
+  "symbol": "music.note"
+ },
+ {
+  "id": "virtual-machine",
+  "match": {
+   "names": [],
+   "pathPrefixes": [
+    "/System/Library/Frameworks/Virtualization.framework/"
+   ],
+   "launchdLabels": []
+  },
+  "title": "Virtual machine",
+  "summary": "A virtual computer run by an app like Docker, OrbStack, UTM or Parallels.",
+  "whyHigh": "Busy whenever the virtual machine is working. Quit the app that runs it when you don't need it.",
+  "verdict": "review",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "virtual-machine",
+  "symbol": "server.rack"
+ },
+ {
+  "id": "com.docker.backend",
+  "match": {
+   "names": [
+    "com.docker.backend"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Docker",
+  "summary": "Runs Docker Desktop's engine.",
+  "whyHigh": "Busy while containers run or images build. Quit Docker Desktop when you're not using it.",
+  "verdict": "review",
+  "fixes": [
+   "explain",
+   "quitApp"
+  ],
+  "guide": "docker-backend",
+  "symbol": "shippingbox"
+ },
+ {
+  "id": "node",
+  "match": {
+   "names": [
+    "node"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": []
+  },
+  "title": "Node.js",
+  "summary": "Runs JavaScript programs, often developer tools or local servers.",
+  "whyHigh": "Busy while a dev server, build or script is running.",
+  "verdict": "review",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "node",
+  "symbol": "terminal"
+ },
+ {
+  "id": "google-software-update",
+  "match": {
+   "names": [
+    "GoogleSoftwareUpdateAgent",
+    "GoogleUpdater"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": [
+    "com.google.keystone",
+    "com.google.GoogleUpdater"
+   ]
+  },
+  "title": "Google Software Update",
+  "summary": "Keeps Chrome and other Google apps up to date.",
+  "whyHigh": "Brief activity while checking for or installing updates.",
+  "verdict": "review",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "google-software-update",
+  "symbol": "arrow.triangle.2.circlepath"
+ },
+ {
+  "id": "microsoft-autoupdate",
+  "match": {
+   "names": [
+    "Microsoft AutoUpdate",
+    "Microsoft Update Assistant"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": [
+    "com.microsoft.update",
+    "com.microsoft.autoupdate"
+   ]
+  },
+  "title": "Microsoft AutoUpdate",
+  "summary": "Keeps Office and other Microsoft apps up to date.",
+  "whyHigh": "Brief activity while checking for or installing updates.",
+  "verdict": "review",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "microsoft-autoupdate",
+  "symbol": "arrow.triangle.2.circlepath"
+ },
+ {
+  "id": "adobe-services",
+  "match": {
+   "names": [
+    "AdobeCRDaemon",
+    "Adobe Desktop Service",
+    "CCXProcess"
+   ],
+   "pathPrefixes": [],
+   "launchdLabels": [
+    "com.adobe."
+   ]
+  },
+  "title": "Adobe background services",
+  "summary": "Runs Creative Cloud sync, updates and licensing.",
+  "whyHigh": "Busy while Creative Cloud syncs files or installs updates.",
+  "verdict": "review",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "adobe-services",
+  "symbol": "cloud"
+ },
+ {
+  "id": "dropbox-services",
+  "match": {
+   "names": [],
+   "pathPrefixes": [],
+   "launchdLabels": [
+    "com.dropbox."
+   ]
+  },
+  "title": "Dropbox background services",
+  "summary": "Keeps Dropbox up to date and syncing.",
+  "whyHigh": "Busy while Dropbox syncs many files.",
+  "verdict": "review",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "dropbox-services",
+  "symbol": "cloud"
+ },
+ {
+  "id": "zoom-services",
+  "match": {
+   "names": [],
+   "pathPrefixes": [],
+   "launchdLabels": [
+    "us.zoom."
+   ]
+  },
+  "title": "Zoom background services",
+  "summary": "Keeps Zoom up to date.",
+  "whyHigh": "Brief activity while checking for updates.",
+  "verdict": "review",
+  "fixes": [
+   "explain"
+  ],
+  "guide": "zoom-services",
+  "symbol": "video"
+ }
+]

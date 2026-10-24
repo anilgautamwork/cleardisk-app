@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import Sparkle
+import PerformanceUI
 
 /// Sparkle verifies signed updates and owns download, installation and relaunch.
 @MainActor final class AppUpdater: ObservableObject {
@@ -25,14 +26,15 @@ import Sparkle
 @MainActor final class UpdateAppDelegate: NSObject, NSApplicationDelegate {
     weak var state: AppState?
     weak var iCloudDoctor: ICloudDoctorState?
+    weak var performance: PerformanceCoordinator?
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        guard (state?.activeRemovals ?? 0) > 0 || iCloudDoctor?.isOperating == true else {
+        guard (state?.activeRemovals ?? 0) > 0 || iCloudDoctor?.isOperating == true || performance?.isOperating == true else {
             return .terminateNow
         }
         let alert = NSAlert()
-        alert.messageText = "Wait for your file operation to finish"
-        alert.informativeText = "ClearDisk can restart once cleanup or the iCloud operation is complete."
+        alert.messageText = "Wait for your operation to finish"
+        alert.informativeText = "ClearDisk can restart once cleanup, iCloud or the performance action is complete."
         alert.addButton(withTitle: "Return to ClearDisk")
         alert.runModal()
         return .terminateCancel

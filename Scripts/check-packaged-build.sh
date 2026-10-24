@@ -19,4 +19,8 @@ assert info['SURequireSignedFeed'] and info['SUVerifyUpdateBeforeExtraction']
 assert not info['SUAllowsAutomaticUpdates'], 'Installation must remain user initiated'
 assert info['SUPublicEDKey'], 'An update verification key must be embedded'
 assert Path('dist/ClearDisk.app/Contents/Frameworks/Sparkle.framework/Sparkle').is_file()
+import json
+catalog = json.loads(Path('dist/ClearDisk.app/Contents/Resources/processes.json').read_text())
+assert catalog and any(entry['id'] == 'kernel_task' for entry in catalog)
+assert info['NSAppleEventsUsageDescription']
 PY_CHECK
