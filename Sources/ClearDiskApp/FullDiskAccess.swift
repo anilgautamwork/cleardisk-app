@@ -1,6 +1,7 @@
 import AppKit
 import Darwin
 import SwiftUI
+import PerformanceUI
 
 /// macOS has no public Full Disk Access status API. Treat an unsuccessful
 /// probe as unconfirmed, not proof of denial: Unix permissions or OS changes
@@ -50,25 +51,30 @@ enum FullDiskAccess {
 /// the user returns from Settings and explicitly chooses Scan my disk.
 struct DiskAccessView: View {
     @Environment(AppState.self) private var state
+    @Environment(ICloudDoctorState.self) private var doctor
+    @Environment(PerformanceCoordinator.self) private var performance
     @Environment(\.scenePhase) private var scenePhase
     private var confirmed: Bool { state.diskAccessConfirmed }
     @State private var hasChecked = false
     @State private var relaunching = false
+    private var operationActive: Bool {
+        state.phase == .scanning || state.activeRemovals > 0 || doctor.isOperating || performance.isOperating
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
                 Button { state.leaveDiskAccess() } label: {
-                    Label("Back", systemImage: "chevron.left")
+                    Label(state.permissionsReturnTitle, systemImage: "chevron.left")
                 }.buttonStyle(.borderless).tint(UI.accentLight)
 
                 Image(systemName: "internaldrive.fill.badge.checkmark")
                     .font(.system(size: 40, weight: .regular)).foregroundStyle(UI.accentLight)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Allow disk access")
+                    Text("Permissions")
                         .font(.system(size: 34, weight: .semibold))
-                    Text("Give ClearDisk Full Disk Access before scanning your disk. You control this in System Settings.")
+                    Text("Full Disk Access lets ClearDisk scan more protected locations. macOS controls this permission; ClearDisk cannot turn it on for you. You can also choose a single folder to scan.")
                         .font(.system(size: 16)).foregroundStyle(UI.textSecondary)
                         .lineSpacing(4).fixedSize(horizontal: false, vertical: true)
                 }
@@ -82,7 +88,7 @@ struct DiskAccessView: View {
                 HStack(spacing: 12) {
                     if confirmed {
                         Button("Scan my disk") { state.startScan(path: "/") }
-                            .buttonStyle(PrimaryButtonStyle())
+                            .buttonStyle(PrimaryButtonStyle()).disabled(operationActive)
                         Button("Open System Settings") { FullDiskAccess.openSettings() }
                             .buttonStyle(.bordered)
                     } else {
@@ -98,7 +104,7 @@ struct DiskAccessView: View {
                                 relaunching = false
                                 state.showToast($0)
                             }
-                        }.buttonStyle(.bordered).disabled(relaunching)
+                        }.buttonStyle(.bordered).disabled(relaunching || operationActive)
                     }
                 }.controlSize(.large).font(.system(size: 14))
 
@@ -108,6 +114,22 @@ struct DiskAccessView: View {
                         .font(.system(size: 14)).foregroundStyle(confirmed ? UI.safeText : UI.textSecondary)
                         .accessibilityElement(children: .combine)
                 }
+                if operationActive {
+                    Text("An operation is in progress. You can review permissions now; wait for it to finish before starting another scan or relaunching.")
+                        .font(.system(size: 14)).foregroundStyle(UI.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Button("Choose a folder instead…") {
+                    let panel = NSOpenPanel()
+                    panel.canChooseDirectories = true
+                    panel.canChooseFiles = false
+                    panel.allowsMultipleSelection = false
+                    panel.prompt = "Scan"
+                    if panel.runModal() == .OK, let url = panel.url {
+                        state.startScan(path: url.path)
+                    }
+                }.buttonStyle(.bordered).disabled(operationActive)
+
                 Text("A scan only measures files. Nothing is changed or deleted. macOS may still restrict some locations or ask for additional access.")
                     .font(.system(size: 14)).foregroundStyle(UI.textSecondary)
                     .lineSpacing(4).fixedSize(horizontal: false, vertical: true)

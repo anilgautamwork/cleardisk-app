@@ -5,7 +5,7 @@ struct PerformanceSettings: View {
     let coordinator: PerformanceCoordinator
     @Environment(\.dismiss) private var dismiss
     @AppStorage("performance.showMenuBar") private var showMenuBar = false
-    @AppStorage("menuBarDisplay") private var display = MenuBarDisplay.cpuAndMemory
+    @AppStorage("menuBarDisplay") private var display = MenuBarDisplay.icon
     @State private var startAtLogin = SMAppService.mainApp.status == .enabled
     @State private var clear = false
     @State private var message: String?
@@ -16,7 +16,7 @@ struct PerformanceSettings: View {
             Form {
                 Section("Monitoring") {
                     Toggle("Show performance in the menu bar", isOn: $showMenuBar)
-                    Text("Monitoring stops when you leave Performance unless the menu bar is enabled.")
+                    Text("Readings update while the ClearDisk window is open. Enable the menu bar to keep monitoring after closing the window.")
                         .font(.caption).foregroundStyle(.secondary)
                     Picker("Menu bar shows", selection: $display) {
                         ForEach(MenuBarDisplay.allCases) { Text($0.title).tag($0) }

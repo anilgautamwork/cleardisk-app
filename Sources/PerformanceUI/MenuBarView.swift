@@ -18,7 +18,7 @@ enum MenuBarDisplay: String, CaseIterable, Identifiable {
 
 struct MenuBarStatusLabel: View {
     @Environment(Monitor.self) private var monitor
-    @AppStorage("menuBarDisplay") private var display = MenuBarDisplay.cpuAndMemory
+    @AppStorage("menuBarDisplay") private var display = MenuBarDisplay.icon
 
     private var unavailable: String? {
         if monitor.isPaused { return "Paused" }
@@ -72,18 +72,18 @@ struct MenuBarView: View {
     @Environment(Monitor.self) private var monitor
     @Environment(FixActions.self) private var actions
     @Environment(LicenseStore.self) private var license
+    @State private var sortByMemory = true
     @State private var startAtLogin = SMAppService.mainApp.status == .enabled
 
     var body: some View {
         let r = monitor.result
+        ScrollView {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 if monitor.isPaused {
                     Pill(text: "Paused", symbol: "pause", fg: Theme.text2, bg: Theme.raised)
-                } else if monitor.error != nil || monitor.catalog == nil {
-                    Pill(text: "Unavailable", symbol: "exclamationmark.triangle", fg: Theme.amber, bg: Theme.amberBG)
-                } else if monitor.lastChecked == nil {
-                    Pill(text: "Checking…", symbol: "clock", fg: Theme.text2, bg: Theme.raised)
+                } else if let status = monitor.readingStatus {
+                    Pill(text: status, symbol: "clock", fg: Theme.text2, bg: Theme.raised)
                 } else {
                     StatusPill(status: r.status)
                 }
@@ -98,18 +98,17 @@ struct MenuBarView: View {
             loadMetrics
             Text(headline)
                 .font(.system(size: 14, weight: .semibold)).fixedSize(horizontal: false, vertical: true)
-            if monitor.lastChecked != nil && (monitor.isPaused || monitor.error != nil) {
+            if monitor.lastChecked != nil && monitor.readingStatus != nil {
                 Text("Values shown are from the last successful check.")
                     .font(.system(size: 12)).foregroundStyle(Theme.text2)
             }
+            diskSpace
             topProcesses
+            storageReview
             VStack(alignment: .leading, spacing: 8) {
-                if monitor.error == nil, !monitor.isPaused, let hero = r.hero, let fix = hero.primaryFix, fix != .explain {
+                if monitor.readingStatus == nil, let hero = r.hero, let fix = hero.primaryFix, fix != .explain {
                     Button {
-                        openMain()
-                        let group = monitor.group(id: hero.groupID)
-                        // The confirmation is shown in the main window.
-                        Task { try? await Task.sleep(for: .milliseconds(300)); actions.perform(fix, group: group) }
+                        coordinator.requestMenuAction(fix, group: monitor.group(id: hero.groupID))
                     } label: {
                         Label(fix.title(monitor.group(id: hero.groupID)), systemImage: fix.isPaid && !license.isLicensed ? "lock" : fix.symbol)
                             .frame(maxWidth: .infinity)
@@ -131,7 +130,8 @@ struct MenuBarView: View {
                 .buttonStyle(.plain).font(.system(size: 12.5)).foregroundStyle(Theme.text2)
         }
         .padding(16)
-        .frame(width: 360)
+        }
+        .frame(width: 420, height: 620)
         .onAppear { monitor.menuOpen = true }
         .onDisappear { monitor.menuOpen = false }
         .background(Theme.window)
@@ -145,7 +145,8 @@ struct MenuBarView: View {
         if monitor.catalog == nil { return "ClearDisk couldn't load its process list. Reinstall ClearDisk." }
         if let error = monitor.error { return error }
         if monitor.lastChecked == nil { return "Checking your Mac…" }
-        return monitor.result.hero?.headline ?? "Your Mac is running smoothly."
+        if let status = monitor.readingStatus { return status }
+        return monitor.result.hero?.headline ?? "No urgent issue detected in this check."
     }
 
     private var loadMetrics: some View {
@@ -175,36 +176,141 @@ struct MenuBarView: View {
         .accessibilityElement(children: .combine)
     }
 
-    private var topProcesses: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Text("Highest CPU use").frame(maxWidth: .infinity, alignment: .leading)
-                Text("CPU").frame(width: 54, alignment: .trailing)
-                Text("Memory").frame(width: 70, alignment: .trailing)
-            }
-            .font(.system(size: 11.5)).foregroundStyle(Theme.text3)
-            ForEach(Array(monitor.groups.prefix(3))) { group in
+    private var diskSpace: some View {
+        Button {
+            coordinator.closeMenu()
+            coordinator.openStorage()
+            coordinator.presentWindow()
+            NSApp.activate()
+        } label: {
+            VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text(group.displayName).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
-                    Text(Format.percent(group.cpuPercent)).frame(width: 54, alignment: .trailing)
-                    Text(Format.bytes(group.memoryBytes)).frame(width: 70, alignment: .trailing)
+                    Label("Disk space", systemImage: "internaldrive")
+                    Spacer()
+                    Text(monitor.signals.flatMap { $0.diskTotalBytes > 0 ? "\(Format.storage($0.diskFreeBytes)) available" : nil } ?? "Unavailable")
+                        .monospacedDigit()
+                }.font(.system(size: 12.5, weight: .medium))
+                if let s = monitor.signals, s.diskTotalBytes > 0 {
+                    ProgressView(value: min(1, max(0, 1 - Double(s.diskFreeBytes) / Double(s.diskTotalBytes))))
+                        .tint(Theme.accent).accessibilityLabel("Disk used")
+                    Text("\(Format.storage(max(0, s.diskTotalBytes - s.diskFreeBytes))) used of \(Format.storage(s.diskTotalBytes)) · Open disk scan")
+                        .font(.system(size: 11)).foregroundStyle(Theme.text2)
                 }
-                .font(.system(size: 12.5)).monospacedDigit()
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel("\(group.displayName), CPU \(Format.percent(group.cpuPercent)), memory \(Format.bytes(group.memoryBytes))")
+            }.padding(12).background(Theme.card, in: RoundedRectangle(cornerRadius: 10))
+        }.buttonStyle(.plain)
+            .help("Available space can include space macOS can reclaim.")
+    }
+
+    private var topProcesses: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Text("Running apps").font(.system(size: 13, weight: .semibold))
+                Spacer()
+                Picker("Sort running apps", selection: $sortByMemory) {
+                    Text("Memory").tag(true)
+                    Text("CPU").tag(false)
+                }.pickerStyle(.segmented).labelsHidden().frame(width: 150)
             }
-            if !monitor.groups.isEmpty {
-                Text("App CPU can exceed 100% when it uses several cores.")
-                    .font(.system(size: 11)).foregroundStyle(Theme.text3)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .fixedSize(horizontal: false, vertical: true)
-            } else {
-                Text(monitor.lastChecked == nil ? "App readings will appear after the first check." : "No app readings available.")
+            ForEach(PerformanceReadout.apps(monitor.groups, byMemory: sortByMemory)) { group in
+                HStack(spacing: 10) {
+                    ProcessIcon(group: group, symbol: "app", size: 26)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(group.displayName).lineLimit(1).font(.system(size: 12.5, weight: .medium))
+                        Text("\(Format.bytes(group.memoryBytes)) · CPU \(Format.percent(group.cpuPercent))")
+                            .font(.system(size: 11)).foregroundStyle(Theme.text2).monospacedDigit()
+                    }.frame(maxWidth: .infinity, alignment: .leading)
+                    if group.quittable {
+                        Button { coordinator.requestMenuAction(.quitApp, group: group) } label: {
+                            Text("Quit…").frame(minWidth: 40, minHeight: 18)
+                        }
+                            .buttonStyle(SecondaryButtonStyle())
+                            .disabled(monitor.readingStatus != nil || actions.isOperating || coordinator.fileOperationActive())
+                            .accessibilityLabel("Quit \(group.displayName), asks for confirmation")
+                    } else {
+                        Text("Protected").font(.system(size: 11)).foregroundStyle(Theme.text3)
+                    }
+                }
+            }
+            if PerformanceReadout.apps(monitor.groups, byMemory: sortByMemory).isEmpty {
+                Text(monitor.lastChecked == nil ? "Apps appear after the first check." : "No app readings available.")
                     .font(.system(size: 12)).foregroundStyle(Theme.text2)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            HStack {
+                Text("Includes app helpers. App CPU can exceed 100%.")
+                    .font(.system(size: 10.5)).foregroundStyle(Theme.text3)
+                Spacer(minLength: 0)
+                Button("View all") { coordinator.showProcesses(); openMain() }
+                    .buttonStyle(.link).font(.system(size: 12))
+            }
+        }.padding(.vertical, 4)
+    }
+
+    private var storageReview: some View {
+        let storage = coordinator.storageSummary()
+        return VStack(alignment: .leading, spacing: 10) {
+            Divider().overlay(Theme.line)
+            Text("Storage to review").font(.system(size: 13, weight: .semibold))
+            if storage.isScanning {
+                Text("Disk scan in progress. Results appear when it finishes.")
+                    .font(.system(size: 12)).foregroundStyle(Theme.text2)
+                Button("View scan") { openStorage(.scan) }.buttonStyle(SecondaryButtonStyle())
+            } else if let date = storage.scanDate {
+                Text("Last scan: \(date.formatted(date: .abbreviated, time: .shortened))")
+                    .font(.system(size: 11)).foregroundStyle(Theme.text2)
+                Text(storage.location).font(.system(size: 11)).foregroundStyle(Theme.text3)
+                    .lineLimit(1).truncationMode(.middle)
+                if storage.skippedCount > 0 {
+                    Text("\(storage.skippedCount) items could not be read; these results are partial.")
+                        .font(.system(size: 11)).foregroundStyle(Theme.text2)
+                }
+                ForEach(storage.files) { file in
+                    Button { openStorage(.largeFiles) } label: {
+                        HStack {
+                            Image(systemName: "doc")
+                            Text(file.name).lineLimit(1).truncationMode(.middle)
+                            Spacer(minLength: 8)
+                            Text(Format.bytes(file.bytes)).monospacedDigit()
+                        }.font(.system(size: 12)).contentShape(Rectangle())
+                    }.buttonStyle(.plain).help("Review large files before choosing what to remove")
+                }
+                if storage.files.isEmpty {
+                    Text("No files over 100 MB in this scan.").font(.system(size: 12)).foregroundStyle(Theme.text2)
+                }
+                Button("Review large files") { openStorage(.largeFiles) }.buttonStyle(.link)
+                if let caches = storage.cacheBytes {
+                    reviewRow("App and browser caches", bytes: caches, destination: .caches)
+                } else {
+                    Text("Scan your home folder or disk to measure caches.")
+                        .font(.system(size: 11)).foregroundStyle(Theme.text2)
+                }
+                reviewRow("Developer junk", bytes: storage.developerJunkBytes, destination: .developerJunk)
+                Text("Measured sizes, not guaranteed free space. Close related apps and review each item; large files may be important.")
+                    .font(.system(size: 11)).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
+                Button("Scan again…") { openStorage(.scan) }.buttonStyle(.link)
+            } else {
+                Text("Scan to see large files and caches on this Mac. Nothing is removed by scanning.")
+                    .font(.system(size: 12)).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
+                Button("Scan my disk…") { openStorage(.scan) }.buttonStyle(SecondaryButtonStyle())
             }
         }
-        .padding(.vertical, 4)
+    }
+
+    private func reviewRow(_ title: String, bytes: Int64, destination: StorageReviewDestination) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(.system(size: 12, weight: .medium))
+                Text(Format.bytes(bytes)).font(.system(size: 11)).foregroundStyle(Theme.text2)
+            }
+            Spacer()
+            Button("Review") { openStorage(destination) }.buttonStyle(SecondaryButtonStyle())
+        }
+    }
+
+    private func openStorage(_ destination: StorageReviewDestination) {
+        coordinator.closeMenu()
+        coordinator.openStorageReview(destination)
+        coordinator.presentWindow()
+        NSApp.activate()
     }
 
     private func openMain() {

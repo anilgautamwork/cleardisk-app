@@ -54,14 +54,11 @@ final class PerformanceStatusItem: NSObject, NSPopoverDelegate {
 
     private func refresh() {
         guard let monitor = coordinator?.monitor, let button = item?.button else { return }
-        let display = UserDefaults.standard.string(forKey: "menuBarDisplay").flatMap(MenuBarDisplay.init(rawValue:)) ?? .cpuAndMemory
-        let message: String?
-        if monitor.isPaused { message = "Paused" }
-        else if monitor.error != nil || monitor.catalog == nil { message = "Unavailable" }
-        else if monitor.lastChecked == nil { message = "Checking…" }
-        else { message = nil }
-        button.image = message == nil ? StatusDot.image(Theme.nsColor(monitor.result.status))
-            : NSImage(systemSymbolName: monitor.isPaused ? "pause.circle" : "waveform.path.ecg", accessibilityDescription: "ClearDisk Performance")
+        let display = UserDefaults.standard.string(forKey: "menuBarDisplay").flatMap(MenuBarDisplay.init(rawValue:)) ?? .icon
+        let message = monitor.readingStatus
+        button.image = NSImage(systemSymbolName: monitor.isPaused ? "pause.circle" : "waveform.path.ecg",
+                               accessibilityDescription: "ClearDisk Performance")
+        button.image?.isTemplate = true
         let cpu = "CPU \(Format.percent(monitor.signals?.cpuLoadPercent ?? 0))"
         let memory = monitor.memory.map { " · \(Format.bytes($0.used))" } ?? ""
         button.title = display == .icon ? "" : " \(message ?? (cpu + (display == .cpuAndMemory ? memory : "")))"

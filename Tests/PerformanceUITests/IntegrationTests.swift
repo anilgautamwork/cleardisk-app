@@ -21,6 +21,21 @@ final class PerformanceIntegrationTests: XCTestCase {
     }
 
     @MainActor
+    func testProcessShortcutOnlyNavigatesAndClearsOldSelection() {
+        let coordinator = PerformanceCoordinator()
+        coordinator.router.screen = .usage
+        coordinator.router.expandedID = "old-process"
+        coordinator.showProcesses()
+        XCTAssertEqual(coordinator.router.screen, .processes)
+        XCTAssertNil(coordinator.router.expandedID)
+        XCTAssertNil(coordinator.actions.confirmation)
+        XCTAssertFalse(coordinator.isOperating)
+        XCTAssertFalse(coordinator.monitor.enabled)
+        coordinator.showProcesses()
+        XCTAssertEqual(coordinator.router.screen, .processes)
+    }
+
+    @MainActor
     func testStorageActionRoutesInsideClearDisk() {
         let coordinator = PerformanceCoordinator()
         var navigations = 0
@@ -32,7 +47,7 @@ final class PerformanceIntegrationTests: XCTestCase {
     }
 
     @MainActor
-    func testMonitoringIsOptInAndStopsOutsidePerformance() {
+    func testMonitoringStopsWhenWindowAndMenuBarAreClosed() {
         let coordinator = PerformanceCoordinator()
         XCTAssertFalse(coordinator.monitor.enabled)
         coordinator.setMonitoring(visible: true, menuBar: false)

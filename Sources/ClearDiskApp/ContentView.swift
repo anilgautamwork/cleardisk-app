@@ -16,41 +16,52 @@ struct ContentView: View {
             SidebarView()
                 .disabled(performance.isOperating)
             Divider().overlay(UI.cardBorder)
-            Group {
-                if state.showPerformance {
-                    PerformanceView(coordinator: performance)
-                } else if state.showMacChecks {
-                    MacChecksView(checks: macChecks)
-                } else if state.showICloudDoctor {
-                    ICloudDoctorView()
-                } else {
-                    switch state.phase {
-                    case .diskAccess:
+            VStack(spacing: 0) {
+                PerformanceSummaryBar(coordinator: performance,
+                                      diskFree: state.volumeFree, diskTotal: state.volumeTotal,
+                                      openStorage: { state.openWorkspace(.storage) },
+                                      openProcesses: {
+                                          performance.showProcesses()
+                                          state.openWorkspace(.performance)
+                                      })
+                    .disabled(performance.isOperating)
+                Divider().overlay(UI.cardBorder)
+                Group {
+                    if state.showPermissions {
                         DiskAccessView()
-                    case .welcome:
-                        WelcomeView()
-                    case .scanning:
-                        ScanningView()
-                    case .done:
-                        Group {
-                            switch state.section {
-                            case .systemData: SystemDataView()
-                            case .reclaimable: ReclaimableView()
-                            case .categories: CategoriesView()
-                            case .browse: BrowserView()
-                            case .treemap: TreemapView()
-                            case .largeFiles: LargeFilesView()
-                            case .search: SearchView()
+                    } else if state.showPerformance {
+                        PerformanceView(coordinator: performance)
+                    } else if state.showMacChecks {
+                        MacChecksView(checks: macChecks)
+                    } else if state.showICloudDoctor {
+                        ICloudDoctorView()
+                    } else {
+                        switch state.phase {
+                        case .welcome:
+                            WelcomeView()
+                        case .scanning:
+                            ScanningView()
+                        case .done:
+                            Group {
+                                switch state.section {
+                                case .systemData: SystemDataView()
+                                case .reclaimable: ReclaimableView()
+                                case .categories: CategoriesView()
+                                case .browse: BrowserView()
+                                case .treemap: TreemapView()
+                                case .largeFiles: LargeFilesView()
+                                case .search: SearchView()
+                                }
                             }
+                            .id(state.section)
+                            .transition(.opacity)
                         }
-                        .id(state.section)
-                        .transition(.opacity)
                     }
                 }
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: state.section)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(UI.canvas)
             }
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: state.section)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(UI.canvas)
         }
         .transaction { if reduceMotion { $0.animation = nil } }
         .foregroundStyle(UI.textPrimary)
@@ -105,13 +116,9 @@ struct SidebarNavRow: View {
 }
 
 struct SidebarView: View {
+    @Environment(PerformanceCoordinator.self) private var performance
     @Environment(AppState.self) private var state
     @Environment(LicenseStore.self) private var license
-
-    private var usedFraction: Double {
-        guard state.volumeTotal > 0 else { return 0 }
-        return Double(state.volumeTotal - state.volumeFree) / Double(state.volumeTotal)
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -124,30 +131,36 @@ struct SidebarView: View {
             }
             .padding(.top, 30)
 
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Image(systemName: "internaldrive").foregroundStyle(UI.accentLight)
-                    Text("Macintosh HD").font(.system(size: 12.5, weight: .semibold))
-                    Spacer()
+            // Keep scan, performance and permission access outside the scrolling list.
+            VStack(spacing: 2) {
+                destination(state.diskNavigationTitle, icon: "internaldrive",
+                            selected: !state.showPermissions && !state.showPerformance && !state.showICloudDoctor && !state.showMacChecks) {
+                    state.openWorkspace(.storage)
                 }
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text(fmtBytes(state.volumeFree)).font(.system(size: 25, weight: .semibold)).tracking(-0.7)
-                    Text("free").font(.system(size: 11)).foregroundStyle(UI.textSecondary)
+                destination("Why Slow", icon: "waveform.path.ecg",
+                            selected: !state.showPermissions && state.showPerformance) {
+                    performance.showProcesses()
+                    state.openWorkspace(.performance)
                 }
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(UI.elevated)
-                        Capsule().fill(UI.accent).frame(width: geo.size.width * min(1, max(0, usedFraction)))
-                    }
-                }.frame(height: 5)
-                Text("\(Int(usedFraction * 100))% used · \(fmtBytes(state.volumeTotal)) total")
-                    .font(.system(size: 10.5)).foregroundStyle(UI.textSecondary)
-            }.padding(15).card()
+                .help("Review CPU and memory use, and quit apps with confirmation")
+                destination("Permissions", icon: "lock.shield", selected: state.showPermissions) {
+                    state.showDiskAccess()
+                }
+            }
 
             ScrollView {
             VStack(alignment: .leading, spacing: 14) {
             Text("Workspace").font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(UI.textSecondary).padding(.leading, 10).padding(.top, 6)
+
+            if state.phase != .done {
+                Text(state.phase == .scanning
+                     ? "Storage sections become available when the scan finishes."
+                     : "Start a disk or folder scan to use the storage sections below.")
+                    .font(.system(size: 12)).foregroundStyle(UI.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 10)
+            }
 
             // Navigation
             VStack(alignment: .leading, spacing: 2) {
@@ -155,11 +168,9 @@ struct SidebarView: View {
                     let needsHome = section == .systemData || section == .categories
                     let available = state.phase == .done && (!needsHome || state.homeNode != nil)
                     SidebarNavRow(section: section,
-                                  isSelected: !state.showPerformance && !state.showMacChecks && !state.showICloudDoctor && state.section == section && state.phase == .done,
+                                  isSelected: !state.showPermissions && !state.showPerformance && !state.showMacChecks && !state.showICloudDoctor && state.section == section && state.phase == .done,
                                   isAvailable: available) {
-                        state.showMacChecks = false
-                        state.showPerformance = false
-                        state.showICloudDoctor = false
+                        state.openWorkspace(.storage)
                         state.section = section
                     }
                     .help(available ? "" :
@@ -170,63 +181,31 @@ struct SidebarView: View {
             }
 
             Button {
-                state.showPerformance = false
-                state.showMacChecks = false
-                state.showICloudDoctor = true
+                state.openWorkspace(.iCloud)
             } label: {
                 Label("iCloud Doctor", systemImage: "icloud")
-                    .font(.system(size: 14, weight: state.showICloudDoctor ? .semibold : .regular))
+                    .font(.system(size: 14, weight: !state.showPermissions && state.showICloudDoctor ? .semibold : .regular))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 10).padding(.vertical, 9)
-                    .background(state.showICloudDoctor ? UI.selectedRowBorder : .clear,
+                    .background(!state.showPermissions && state.showICloudDoctor ? UI.selectedRowBorder : .clear,
                                 in: RoundedRectangle(cornerRadius: 8))
                     .contentShape(Rectangle())
             }.buttonStyle(.plain)
-            if state.showICloudDoctor && state.phase != .done {
-                Button(state.phase == .scanning ? "View Disk Scan" : "Back to Disk Scan") {
-                    state.showICloudDoctor = false
-                }.buttonStyle(.link).tint(UI.accentLight).font(.system(size: 12))
-            }
+
 
             Button {
-                state.showPerformance = false
-                state.showICloudDoctor = false
-                state.showMacChecks = true
+                state.openWorkspace(.macChecks)
             } label: {
                 Label("Mac checks", systemImage: "desktopcomputer")
-                    .font(.system(size: 14, weight: state.showMacChecks ? .semibold : .regular))
+                    .font(.system(size: 14, weight: !state.showPermissions && state.showMacChecks ? .semibold : .regular))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 10).padding(.vertical, 9)
-                    .background(state.showMacChecks ? UI.selectedRowBorder : .clear,
+                    .background(!state.showPermissions && state.showMacChecks ? UI.selectedRowBorder : .clear,
                                 in: RoundedRectangle(cornerRadius: 8))
                     .contentShape(Rectangle())
             }.buttonStyle(.plain)
             .help("Apple Intelligence storage and Intel app compatibility")
-            if state.showMacChecks && state.phase != .done {
-                Button(state.phase == .scanning ? "View Disk Scan" : "Back to Disk Scan") {
-                    state.showMacChecks = false
-                }.buttonStyle(.link).tint(UI.accentLight).font(.system(size: 12))
-            }
 
-            Button {
-                state.showICloudDoctor = false
-                state.showMacChecks = false
-                state.showPerformance = true
-            } label: {
-                Label("Performance", systemImage: "waveform.path.ecg")
-                    .font(.system(size: 14, weight: state.showPerformance ? .semibold : .regular))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 10).padding(.vertical, 9)
-                    .background(state.showPerformance ? UI.selectedRowBorder : .clear,
-                                in: RoundedRectangle(cornerRadius: 8))
-                    .contentShape(Rectangle())
-            }.buttonStyle(.plain)
-            .help("CPU, memory, processes, background items, internet and usage history")
-            if state.showPerformance && state.phase != .done {
-                Button(state.phase == .scanning ? "View Disk Scan" : "Back to Disk Scan") {
-                    state.showPerformance = false
-                }.buttonStyle(.link).tint(UI.accentLight).font(.system(size: 12))
-            }
 
             if state.showFDAHint {
                 VStack(alignment: .leading, spacing: 6) {
@@ -269,7 +248,7 @@ struct SidebarView: View {
             }
 
             }
-            }.scrollIndicators(.hidden)
+            }.scrollIndicators(.visible)
 
             Spacer(minLength: 0)
 
@@ -326,4 +305,17 @@ struct SidebarView: View {
         .frame(width: 220)
         .background(UI.sidebar)
     }
+
+    private func destination(_ title: String, icon: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: icon)
+                .font(.system(size: 14, weight: selected ? .semibold : .regular))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 10).padding(.vertical, 9)
+                .background(selected ? UI.selectedRowBorder : .clear,
+                            in: RoundedRectangle(cornerRadius: 8))
+                .contentShape(Rectangle())
+        }.buttonStyle(.plain)
+    }
+
 }

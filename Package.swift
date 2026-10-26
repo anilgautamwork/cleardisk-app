@@ -21,6 +21,7 @@ let package = Package(
         // distribution time (needs Apple Developer account).
         .executableTarget(name: "ClearDiskApp", dependencies: ["Core", "SyncDoctorCore", "PerformanceUI", .product(name: "Sparkle", package: "Sparkle")],
                           linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"]) ]),
+        .testTarget(name: "ClearDiskAppTests", dependencies: ["ClearDiskApp"]),
         .testTarget(name: "CoreTests", dependencies: ["Core"]),
         .testTarget(name: "PerformanceCoreTests", dependencies: ["PerformanceCore"], resources: [.copy("Fixtures")]),
         .testTarget(name: "PerformanceUITests", dependencies: ["PerformanceUI"]),

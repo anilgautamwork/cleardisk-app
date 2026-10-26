@@ -1,4 +1,5 @@
 import AppKit
+import PerformanceCore
 import Observation
 import SwiftUI
 
@@ -15,12 +16,59 @@ public final class PerformanceCoordinator {
     var openPerformance: () -> Void = {}
     var fileOperationActive: () -> Bool = { false }
 
+    var storageSummary: () -> StorageMenuSummary = { StorageMenuSummary() }
+    var openStorageReview: (StorageReviewDestination) -> Void = { _ in }
+
+    public func configureStorage(summary: @escaping () -> StorageMenuSummary,
+                                 open: @escaping (StorageReviewDestination) -> Void) {
+        storageSummary = summary
+        openStorageReview = open
+    }
+
     public init() {}
 
+    struct MenuAction {
+        let id = UUID()
+        let fix: FixID
+        let group: ProcessGroup?
+        let requestedAt: Date
+    }
+    var pendingMenuAction: MenuAction?
+
+    func requestMenuAction(_ fix: FixID, group: ProcessGroup?, now: Date = Date()) {
+        guard !isOperating, !fileOperationActive() else { return }
+        if fix == .quitApp, group?.quittable != true { return }
+        pendingMenuAction = MenuAction(fix: fix, group: group, requestedAt: now)
+        closeMenu()
+        showProcesses()
+        openPerformance()
+        presentWindow()
+        NSApp?.activate()
+    }
+
+    /// Present a confirmation only once the destination exists, never after a timed delay.
+    func presentPendingMenuAction(now: Date = Date()) {
+        guard let pending = pendingMenuAction else { return }
+        pendingMenuAction = nil
+        guard now.timeIntervalSince(pending.requestedAt) <= 5,
+              !isOperating, !fileOperationActive() else { return }
+        actions.perform(pending.fix, group: pending.group)
+    }
+
+    public func cancelPendingMenuAction() { pendingMenuAction = nil }
+
     public func configureWindow(_ present: @escaping () -> Void) { presentWindow = present }
-    func closeMenu() { statusItem.close() }
+    func closeMenu() {
+        if NSClassFromString("XCTestCase") == nil { statusItem.close() }
+    }
 
     public var isOperating: Bool { actions.isOperating }
+
+    /// Navigation only: reviewing running apps must never trigger a fix.
+    public func showProcesses() {
+        router.screen = .processes
+        router.expandedID = nil
+    }
 
     public func configure(isLicensed: @escaping () -> Bool, requestUnlock: @escaping () -> Void,
                           openStorage: @escaping () -> Void, openPerformance: @escaping () -> Void,
@@ -103,6 +151,9 @@ public struct PerformanceView: View {
         .environment(coordinator.monitor).environment(coordinator.router)
         .environment(coordinator.actions).environment(coordinator.license)
         .modifier(PerformancePresentation(coordinator: coordinator))
+        .onAppear { coordinator.presentPendingMenuAction() }
+        .onChange(of: coordinator.pendingMenuAction?.id) { _, _ in coordinator.presentPendingMenuAction() }
+        .onDisappear { coordinator.cancelPendingMenuAction() }
         .sheet(isPresented: $settings, onDismiss: coordinator.license.presentPendingUnlock) {
             PerformanceSettings(coordinator: coordinator)
         }

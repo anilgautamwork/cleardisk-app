@@ -11,6 +11,7 @@ struct ClearDiskApp: App {
     @State private var license = LicenseStore()
     @State private var iCloudDoctor = ICloudDoctorState()
     @State private var performance = PerformanceCoordinator()
+    @State private var mainWindowVisible = false
     @AppStorage("performance.showMenuBar") private var showPerformanceMenu = false
 
     var body: some Scene {
@@ -30,29 +31,32 @@ struct ClearDiskApp: App {
                     performance.configure(isLicensed: { license.isLicensed },
                         requestUnlock: { license.showUnlock = true },
                         openStorage: {
-                            state.showPerformance = false
-                            state.showICloudDoctor = false
-                            state.showMacChecks = false
+                            state.openWorkspace(.storage)
                         },
                         openPerformance: {
-                            state.showPerformance = true
-                            state.showICloudDoctor = false
-                            state.showMacChecks = false
+                            state.openWorkspace(.performance)
                         },
                         fileOperationActive: { state.activeRemovals > 0 || iCloudDoctor.isOperating })
-                    performance.setMonitoring(visible: state.showPerformance, menuBar: showPerformanceMenu)
+                    performance.configureStorage(summary: { state.storageMenuSummary },
+                                                 open: { state.openStorageReview($0) })
+                    performance.setMonitoring(visible: mainWindowVisible, menuBar: showPerformanceMenu)
                     updater.start()
                     license.load()
                     await license.recheckIfStale()
                 }
                 .onOpenURL { license.handle(url: $0) }
-                .onChange(of: state.showPerformance) { _, visible in
-                    performance.setMonitoring(visible: visible, menuBar: showPerformanceMenu)
+                .onAppear {
+                    mainWindowVisible = true
+                    performance.setMonitoring(visible: true, menuBar: showPerformanceMenu)
                 }
                 .onChange(of: showPerformanceMenu) { _, menu in
-                    performance.setMonitoring(visible: state.showPerformance, menuBar: menu)
+                    performance.setMonitoring(visible: mainWindowVisible, menuBar: menu)
                 }
-                .onDisappear { performance.setMonitoring(visible: false, menuBar: showPerformanceMenu) }
+                .onDisappear {
+                    mainWindowVisible = false
+                    performance.cancelPendingMenuAction()
+                    performance.setMonitoring(visible: false, menuBar: showPerformanceMenu)
+                }
         }
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
@@ -73,7 +77,6 @@ struct ClearDiskApp: App {
 final class AppState {
     enum Phase {
         case welcome
-        case diskAccess
         case scanning
         case done
     }
@@ -102,6 +105,7 @@ final class AppState {
     }
 
     var activeRemovals = 0
+    var showPermissions = false
     var showICloudDoctor = false
     var showMacChecks = false
     var showPerformance = false
@@ -162,6 +166,7 @@ final class AppState {
             report = SystemDataScan.build(homeRoot: homeNode, homePath: homePath)
             categoryTotals = Categorizer.homeTotals(root: homeNode)
         }
+        menuFiles = Self.largestMenuFiles(root: root, rootPath: scanPath)
         devJunkItems = DevJunkScan.find(root: root, scanPath: scanPath,
                                         homeRoot: homeNode, homePath: homePath)
     }
@@ -176,6 +181,7 @@ final class AppState {
 
     var toast: Toast?
     var devJunkItems: [DevJunkItem] = []
+    var menuFiles: [StorageMenuFile] = []
     var diskAccessConfirmed = false
     /// Absolute path the Browse section should open at.
     var browsePath: String?
@@ -245,22 +251,93 @@ final class AppState {
         }
     }
 
+    /// Permissions is a destination, not a scan phase. A scan may finish
+    /// while it is open, and Back must keep that result and the prior workspace.
     func showDiskAccess() {
-        showPerformance = false
-        showICloudDoctor = false
-        showMacChecks = false
         diskAccessConfirmed = false
-        phase = .diskAccess
+        showPermissions = true
     }
 
     func leaveDiskAccess() {
-        phase = root == nil ? .welcome : .done
+        showPermissions = false
+    }
+
+    enum Workspace { case storage, iCloud, macChecks, performance }
+
+    func openWorkspace(_ workspace: Workspace) {
+        showPermissions = false
+        showPerformance = workspace == .performance
+        showICloudDoctor = workspace == .iCloud
+        showMacChecks = workspace == .macChecks
+    }
+
+    var diskNavigationTitle: String {
+        switch phase {
+        case .welcome: "Disk scan"
+        case .scanning: "Scan in progress"
+        case .done: "Scan results"
+        }
+    }
+
+    var permissionsReturnTitle: String {
+        if showPerformance { return "Back to Why Slow" }
+        if showMacChecks { return "Back to Mac checks" }
+        if showICloudDoctor { return "Back to iCloud Doctor" }
+        return phase == .done ? "Back to scan results" : "Back to disk scan"
+    }
+
+    var storageMenuSummary: StorageMenuSummary {
+        let complete = phase == .done && root != nil
+        return StorageMenuSummary(
+            scanDate: complete ? scanDate : nil, isScanning: phase == .scanning,
+            files: complete ? menuFiles : [],
+            cacheBytes: complete ? report.map { report in
+                report.rows.filter { ["app-caches", "browser-caches"].contains($0.id) }
+                    .reduce(Int64(0)) { $0 + ($1.bytes ?? 0) }
+            } : nil,
+            developerJunkBytes: complete ? devJunkItems.reduce(Int64(0)) { total, item in
+                if case .trashable = item.action { return total + item.bytes }
+                return total
+            } : 0,
+            location: complete ? scanPath : "", skippedCount: complete ? stats?.skippedCount ?? 0 : 0)
+    }
+
+    func openStorageReview(_ destination: StorageReviewDestination) {
+        openWorkspace(.storage)
+        guard phase != .scanning else { return }
+        if case .scan = destination { showDiskAccess(); return }
+        guard phase == .done, root != nil else { return }
+        switch destination {
+        case .largeFiles: section = .largeFiles
+        case .developerJunk: section = .reclaimable
+        case .caches:
+            if homeNode != nil { section = .systemData }
+            else { showDiskAccess() }
+        case .scan: break
+        }
+    }
+
+    /// Build before publishing a scan, or on the main actor after tree surgery.
+    /// Only immutable value rows cross into PerformanceUI; no live tree is retained.
+    nonisolated static func largestMenuFiles(root: FileNode, rootPath: String) -> [StorageMenuFile] {
+        var largest: [StorageMenuFile] = []
+        func walk(_ node: FileNode, path: String) {
+            for child in node.children ?? [] where child.size >= 100_000_000 {
+                let childPath = path == "/" ? "/" + child.name : path + "/" + child.name
+                if child.isDirectory { walk(child, path: childPath) }
+                else {
+                    largest.append(StorageMenuFile(path: childPath, name: child.name, bytes: child.size))
+                    largest.sort { $0.bytes == $1.bytes ? $0.id < $1.id : $0.bytes > $1.bytes }
+                    if largest.count > 3 { largest.removeLast() }
+                }
+            }
+        }
+        walk(root, path: rootPath)
+        return largest
     }
 
     func startScan(path: String) {
-        showPerformance = false
-        showICloudDoctor = false
-        showMacChecks = false
+        openWorkspace(.storage)
         // Gate full-disk work here, so welcome, rescan, and choosing "/" in
         // the folder picker cannot enter the scanner before access is checked.
         let decision = ScanAccessPolicy.decision(path: path, diskAccessConfirmed: FullDiskAccess.isConfirmed)
@@ -319,15 +396,16 @@ final class AppState {
             guard !Task.isCancelled else { return }
             let junk = DevJunkScan.find(root: result.root, scanPath: path, homeRoot: home, homePath: homePath)
             guard !Task.isCancelled else { return }
+            let menuFiles = Self.largestMenuFiles(root: result.root, rootPath: path)
             let elapsed = Date().timeIntervalSince(started)
             await MainActor.run { [weak self] in
                 guard let self, self.scanRequest == request else { return }
-                self.finishScan(result: result, home: home, report: report, categories: categories, junk: junk, elapsed: elapsed)
+                self.finishScan(result: result, home: home, report: report, categories: categories, junk: junk, menuFiles: menuFiles, elapsed: elapsed)
             }
         }
     }
 
-    private func finishScan(result: ParallelScan.Result, home: FileNode?, report: SystemDataReport?, categories: [CategoryTotal], junk: [DevJunkItem], elapsed: Double) {
+    private func finishScan(result: ParallelScan.Result, home: FileNode?, report: SystemDataReport?, categories: [CategoryTotal], junk: [DevJunkItem], menuFiles: [StorageMenuFile], elapsed: Double) {
         root = result.root
         stats = result.stats
         scanDate = Date()
@@ -336,6 +414,7 @@ final class AppState {
         self.report = report
         categoryTotals = categories
         devJunkItems = junk
+        self.menuFiles = menuFiles
         section = home != nil ? .systemData : .treemap
         pendingUndoNodes = []
         treeVersion += 1

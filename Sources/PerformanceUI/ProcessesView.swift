@@ -16,8 +16,8 @@ struct ProcessesView: View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Processes").font(.system(size: 30, weight: .bold))
-                    Text("Everything running on your Mac, in plain English.").font(.system(size: 14.5)).foregroundStyle(Theme.text2)
+                    Text("Why Slow").font(.system(size: 30, weight: .bold))
+                    Text("Review CPU and memory use. Quit apps you no longer need; each quit asks for confirmation.").font(.system(size: 14.5)).foregroundStyle(Theme.text2)
                 }
                 Spacer()
                 LiveBadge()
